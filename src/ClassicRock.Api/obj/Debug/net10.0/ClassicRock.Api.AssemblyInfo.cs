@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClassicRock.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+651550fd279a401b7fb782bc6789435506cff84b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClassicRock.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClassicRock.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
