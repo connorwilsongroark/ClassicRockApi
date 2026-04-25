@@ -1,3 +1,5 @@
+using ClassicRock.Api.Features.Artists;
+
 namespace ClassicRock.Api.Entities;
 
 public sealed class Artist
@@ -7,4 +9,6 @@ public sealed class Artist
     public string? Country {get; set;}
     public int? FormedYear {get; set;}
     public List<Album> Albums {get; set;} = [];
+    public List<ArtistGenre> ArtistGenres {get; set;} = [];
+    public List<AlbumArtist> AlbumArtists { get; set; } = [];
 }
