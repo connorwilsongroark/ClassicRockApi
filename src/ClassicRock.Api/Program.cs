@@ -2,6 +2,7 @@ using ClassicRock.Api.Data;
 using ClassicRock.Api.Features.Albums;
 using ClassicRock.Api.Features.Artists;
 using ClassicRock.Api.Features.Genres;
+using ClassicRock.Api.Features.Tracks;
 using ClassicRock.Api.Infrastructure;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,7 @@ app.UseRateLimiter();
 app.MapArtistsEndpoints();
 app.MapAlbumsEndpoints();
 app.MapGenresEndpoints();
+app.MapTracksEndpoints();
 
 app.Run();
 

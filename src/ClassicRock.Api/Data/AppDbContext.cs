@@ -60,6 +60,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
                 .IsUnique();
         });
 
+        modelBuilder.Entity<Track>(entity =>
+        {
+            entity.ToTable("Tracks");
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Name)
+            .HasMaxLength(200)
+            .IsRequired();
+        });
+
         modelBuilder.Entity<ArtistGenre>(entity =>
         {
             entity.ToTable("ArtistGenres");
