@@ -1,4 +1,5 @@
 using ClassicRock.Api.Data;
+using ClassicRock.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassicRock.Api.Features.Albums;
@@ -7,10 +8,13 @@ public static class AlbumsEndpoints
 {
     public static IEndpointRouteBuilder MapAlbumsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/artists")
+        var group = app.MapGroup("/api/v1/albums")
             .WithTags("Albums")
             .RequireRateLimiting("public");
 
+        // ==========
+        // GET
+        // ==========
         // Keep this list endpoint light
         group.MapGet("/", async (
             AppDbContext db,
@@ -39,6 +43,9 @@ public static class AlbumsEndpoints
                 return Results.Ok(albums);
         });
 
+        // ==========
+        // GET BY ID
+        // ==========
         group.MapGet("/{id:guid}", async (
             Guid id,
             AppDbContext db,
@@ -77,6 +84,67 @@ public static class AlbumsEndpoints
                 ? Results.NotFound()
                 : Results.Ok(album);
         }).WithName("GetAlbumById");
+
+        // ==========
+        // POST
+        // ==========
+        group.MapPost("/", async (CreateAlbumRequest request, AppDbContext db, CancellationToken ct) =>
+        {
+            var validation = AlbumValidator.ValidateForCreate(request);
+
+            if (!validation.IsValid) return Results.ValidationProblem(validation.Errors);
+
+            var normalizedTitle = AlbumValidator.NormalizeTitle(request.Title);
+
+            var album = new Album
+            {
+                Id = Guid.NewGuid(),
+                Title = normalizedTitle,
+                ReleaseYear = request.ReleaseYear,
+                CuratedScore = request.CuratedScore
+            };
+
+            db.Albums.Add(album);
+            await db.SaveChangesAsync(ct);
+
+            return Results.CreatedAtRoute(
+                "GetAlbumById",
+                new { id = album.Id },
+                new AlbumResponse(album.Id, album.Title, album.ReleaseYear, album.CuratedScore, PrimaryArtistName: null, PrimaryGenreName: null)
+            );
+        });
+
+        // ==========
+        // PUT
+        // ==========
+        group.MapPut("/{id:guid}", async (
+            Guid id,
+            UpdateAlbumRequest request,
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            var validation = AlbumValidator.ValidateForUpdate(request);
+
+            if (!validation.IsValid) return Results.ValidationProblem(validation.Errors);
+
+            // Check if the album we're trying to update exists
+            var album = await db.Albums.FirstOrDefaultAsync(x => x.Id == id, ct);
+
+            if (album is null) return Results.NotFound();
+
+            var normalizedTitle = AlbumValidator.NormalizeTitle(request.Title);
+
+            // Update the album
+            album.Title = normalizedTitle;
+            album.ReleaseYear = request.ReleaseYear;
+            album.CuratedScore = request.CuratedScore;
+
+            await db.SaveChangesAsync(ct);
+
+            // Return the updated data
+            return Results.Ok(new AlbumResponse(album.Id, album.Title, album.ReleaseYear, album.CuratedScore, PrimaryArtistName: null, PrimaryGenreName: null));
+        });
         return app;
     }
 }
