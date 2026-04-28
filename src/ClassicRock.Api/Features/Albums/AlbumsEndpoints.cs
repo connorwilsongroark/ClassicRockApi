@@ -86,7 +86,7 @@ public static class AlbumsEndpoints
         }).WithName("GetAlbumById");
 
         // ==========
-        // POST
+        // POST - Create a new album
         // ==========
         group.MapPost("/", async (CreateAlbumRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -115,7 +115,155 @@ public static class AlbumsEndpoints
         });
 
         // ==========
-        // PUT
+        // POST - Add a genre to an album
+        // ==========
+        group.MapPost("/{albumId:guid}/genres", async (
+            Guid albumId,
+            AddAlbumGenreRequest request,
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            // Ensure the album exists
+            var albumExists = await db.Albums.AnyAsync(x => x.Id == albumId, ct);
+
+            if (!albumExists)
+            {
+                return Results.NotFound(new
+                { 
+                    message = "Album was not found."
+                });
+            };
+
+            // Ensure that that genre we're trying to assign is valid
+            var genreExists = await db.Genres.AnyAsync(x => x.Id == request.GenreId, ct);
+
+            if (!genreExists)
+            {
+                return Results.NotFound(new
+                {
+                    message = "Genre was not found."
+                });
+            }
+
+            // Check if the relationship between the album and the genre already exists
+            var relationshipExists = await db.AlbumGenres.AnyAsync(x =>
+                x.AlbumId == albumId &&
+                x.GenreId == request.GenreId,
+                ct);
+
+            if (relationshipExists)
+            {
+                return Results.Conflict( new
+                {
+                    message = "This genre is already associated with this album."
+                });
+            }
+
+            // Check if the album already has a primary genre
+            if (request.IsPrimary)
+            {
+                var primaryAlreadyExists = await db.AlbumGenres.AnyAsync(x => 
+                x.AlbumId == albumId &&
+                x.IsPrimary, 
+                ct);
+
+                if (primaryAlreadyExists)
+                {
+                    return Results.Conflict(new
+                    {
+                        message = "This album already has a primary genre."
+                    });
+                }
+            }
+
+            var albumGenre = new AlbumGenre
+            {
+                AlbumId = albumId,
+                GenreId = request.GenreId,
+                IsPrimary = request.IsPrimary
+            };
+
+            db.AlbumGenres.Add(albumGenre);
+            await db.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
+
+        // ==========
+        // POST - Add an artist to an album
+        // ==========
+        group.MapPost("/{albumId:guid}/artists", async (
+            Guid albumId,
+            AddAlbumArtistRequest request,
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            // Ensure that the album exists
+            var albumExists = await db.Albums.AnyAsync(x => x.Id == albumId, ct);
+            if (!albumExists) return Results.NotFound(new
+            {
+               message = "Album not found." 
+            });
+
+            // Ensure that the artist exists
+            var artistExists = await db.Artists.AnyAsync(x => x.Id == request.ArtistId, ct);
+            if (!artistExists) return Results.NotFound(new
+            {
+                message = "Artist not found."
+            });
+
+            // Check if the role is valid
+            if (!Enum.IsDefined(request.Role))
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                   ["role"] = ["Role is not valid."] 
+                });
+            }
+
+            // Check if the relationship already exists
+            var relationshipExists = await db.AlbumArtists.AnyAsync(x =>
+                x.AlbumId == albumId &&
+                x.ArtistId == request.ArtistId,
+                ct);
+
+            if (relationshipExists) return Results.Conflict(new
+            {
+                message = "This artist is already associated with this album."
+            });
+
+            // Check if there's already a primary artist on the album if we're trying to set one
+            if (request.Role == AlbumArtistRole.Primary)
+            {
+                var primaryAlreadyExists = await db.AlbumArtists.AnyAsync(x =>
+                    x.AlbumId == albumId &&
+                    x.Role == AlbumArtistRole.Primary,
+                    ct);
+
+                if (primaryAlreadyExists) return Results.Conflict(new
+                {
+                    message = "This album already has a primary artist."
+                });
+            }
+
+            // Create the artist & album entry.
+            var albumArtist = new AlbumArtist
+            {
+                AlbumId = albumId,
+                ArtistId = request.ArtistId,
+                Role = request.Role,
+            };
+
+            db.AlbumArtists.Add(albumArtist);
+            await db.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
+
+        // ==========
+        // PUT - Update a single album
         // ==========
         group.MapPut("/{id:guid}", async (
             Guid id,
@@ -145,6 +293,8 @@ public static class AlbumsEndpoints
             // Return the updated data
             return Results.Ok(new AlbumResponse(album.Id, album.Title, album.ReleaseYear, album.CuratedScore, PrimaryArtistName: null, PrimaryGenreName: null));
         });
+
+
         return app;
     }
 }

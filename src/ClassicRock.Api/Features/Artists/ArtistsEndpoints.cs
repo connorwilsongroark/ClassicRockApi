@@ -1,4 +1,5 @@
 using ClassicRock.Api.Data;
+using ClassicRock.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassicRock.Api.Features.Artists;
@@ -11,29 +12,105 @@ public static class ArtistsEndpoints
             .WithTags("Artists")
             .RequireRateLimiting("public");
 
-            group.MapGet("/", async (AppDbContext db, CancellationToken ct) =>
+        // ==========
+        // GET
+        // ==========
+        group.MapGet("/", async (AppDbContext db, CancellationToken ct) =>
             {
                 var artists = await db.Artists
                     .OrderBy(x => x.Name)
                     .Select(x => new ArtistResponse(x.Id, x.Name, x.Country, x.FormedYear))
                     .ToListAsync(ct);
+
+                return Results.Ok(artists);
             });
 
-            group.MapGet("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
+        // ==========
+        // GET BY ID
+        // ==========
+        group.MapGet("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
+        {
+            var artist = await db.Artists
+                .Where(x => x.Id == id)
+                .Select(x => new ArtistResponse(
+                    x.Id,
+                    x.Name,
+                    x.Country,
+                    x.FormedYear
+                ))
+                .FirstOrDefaultAsync(ct);
+
+                return artist is null ? Results.NotFound() : Results.Ok(artist);
+        })
+        .WithName("GetArtistById");
+
+        // ==========
+        // POST
+        // ==========
+        group.MapPost("/", async (
+            CreateArtistRequest request, 
+            AppDbContext db, 
+            CancellationToken ct) =>
+        {
+            var validation = ArtistValidator.ValidateForCreate(request);
+
+            if (!validation.IsValid) return Results.ValidationProblem(validation.Errors);
+
+            var normalizedName = ArtistValidator.NormalizeName(request.Name);
+            var normalizedCountry = ArtistValidator.NormalizeCountry(request.Country);
+
+            var artist = new Artist
             {
-                var artist = await db.Artists
-                    .Where(x => x.Id == id)
-                    .Select(x => new ArtistResponse(
-                        x.Id,
-                        x.Name,
-                        x.Country,
-                        x.FormedYear
-                    ))
-                    .FirstOrDefaultAsync(ct);
+                Id = Guid.NewGuid(),
+                Name = normalizedName,
+                Country = normalizedCountry,
+                FormedYear = request.FormedYear
+            };
 
-                    return artist is null ? Results.NotFound() : Results.Ok(artist);
-            });
+            db.Artists.Add(artist);
+            await db.SaveChangesAsync(ct);
 
-            return app;
+            return Results.CreatedAtRoute(
+                "GetArtistById",
+                new { id = artist.Id },
+                new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear)
+            );
+        });
+
+        // ==========
+        // PUT
+        // ==========
+        group.MapPut("/{id:guid}", async (
+            Guid id,
+            UpdateArtistRequest request,
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            var validation = ArtistValidator.ValidateForUpdate(request);
+
+            if (!validation.IsValid) return Results.ValidationProblem(validation.Errors);
+
+            // Confirm that the artist we're updating actually exists
+            var artist = await db.Artists.FirstOrDefaultAsync(x => x.Id == id, ct);
+
+            if (artist is null) return Results.NotFound();
+
+            // Normalize request inputs
+            var normalizedName = ArtistValidator.NormalizeName(request.Name);
+            var normalizedCountry = ArtistValidator.NormalizeCountry(request.Country);
+
+            // Update the artist
+            artist.Name = normalizedName;
+            artist.Country = normalizedCountry;
+            artist.FormedYear = request.FormedYear;
+
+            await db.SaveChangesAsync(ct);
+
+            // Return the updated data to the user
+            return Results.Ok(new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear));
+        });
+
+        return app;
     }
 }
