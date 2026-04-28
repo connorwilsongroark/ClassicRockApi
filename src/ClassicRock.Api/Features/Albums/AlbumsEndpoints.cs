@@ -11,58 +11,72 @@ public static class AlbumsEndpoints
             .WithTags("Albums")
             .RequireRateLimiting("public");
 
-            group.MapGet("/", async (
-                string? q,
-                int? year,
-                // string? genre,
-                AppDbContext db,
-                CancellationToken ct
-            ) =>
-            {
-
-                // Dynamically construct query based on criteria passed into request
-                var query = db.Albums
-                    .AsNoTracking()
-                    .Include(x => x.Artist)
-                    .AsQueryable();
-
-                // If the user specified name, append that to query
-                if (!string.IsNullOrWhiteSpace(q))
-                {
-                    query = query.Where(x =>
-                        x.Title.Contains(q) || x.Artist.Name.Contains(q));
-                }
-
-                // If user specified year, append that to query
-                if (year.HasValue)
-                {
-                    query = query.Where(x => x.ReleaseYear == year.Value);
-                }
-
-                // If user specified genre, append that to query
-                // if (!string.IsNullOrWhiteSpace(genre))
-                // {
-                //     query = query.Where(x => x.Genre == genre);
-                // }
-
-                // Perform the query on the albums table
-                var albums = await query
-                    .OrderBy(x => x.Artist.Name)
-                    .ThenBy(x => x.ReleaseYear)
-                    .ThenBy(x => x.Title)
-                    .Select(x => new AlbumsResponse(
-                        x.Id,
-                        x.ArtistId,
-                        x.Artist.Name,
-                        x.Title,
-                        x.ReleaseYear,
-                        // x.Genre,
-                        // x.Subgenre,
-                        x.CuratedScore
-                    )).ToListAsync(ct);
+        // Keep this list endpoint light
+        group.MapGet("/", async (
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            var albums = await db.Albums
+                .AsNoTracking()
+                .OrderBy(x => x.Title)
+                .Select(x => new AlbumResponse(
+                    x.Id,
+                    x.Title,
+                    x.ReleaseYear,
+                    x.CuratedScore,
+                    x.AlbumArtists
+                        .Where(aa => aa.Role == AlbumArtistRole.Primary)
+                        .Select(aa => aa.Artist.Name)
+                        .FirstOrDefault(),
+                    x.AlbumGenres
+                        .Where(ag => ag.IsPrimary)
+                        .Select(ag => ag.Genre.Name)
+                        .FirstOrDefault()
+                ))
+                .ToListAsync(ct);
 
                 return Results.Ok(albums);
-            });
+        });
+
+        group.MapGet("/{id:guid}", async (
+            Guid id,
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            var album = await db.Albums
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new AlbumDetailResponse(
+                    x.Id,
+                    x.Title,
+                    x.ReleaseYear,
+                    x.CuratedScore,
+                    x.AlbumArtists
+                        .OrderBy(aa => aa.Role)
+                        .ThenBy(aa => aa.Artist.Name)
+                        .Select(aa => new AlbumArtistResponse(
+                            aa.ArtistId,
+                            aa.Artist.Name,
+                            aa.Role
+                        ))
+                        .ToList(),
+                    x.AlbumGenres
+                        .OrderByDescending(ag => ag.IsPrimary)
+                        .ThenBy(ag => ag.Genre.Name)
+                        .Select(ag => new AlbumGenreResponse(
+                            ag.GenreId,
+                            ag.Genre.Name,
+                            ag.IsPrimary
+                        ))
+                        .ToList()
+                )).FirstOrDefaultAsync(ct);
+            
+            return album is null
+                ? Results.NotFound()
+                : Results.Ok(album);
+        }).WithName("GetAlbumById");
         return app;
     }
 }

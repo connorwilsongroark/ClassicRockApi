@@ -45,13 +45,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
 
             entity.Property(x => x.CuratedScore).HasPrecision(4,2);
 
-            entity.HasOne(x => x.Artist)
-                .WithMany(x => x.Albums)
-                .HasForeignKey(x => x.ArtistId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            entity.HasIndex(x => new {x.ArtistId, x.Title}).IsUnique();
-
         });
 
         modelBuilder.Entity<Genre>(entity =>
