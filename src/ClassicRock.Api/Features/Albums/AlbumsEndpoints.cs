@@ -263,6 +263,72 @@ public static class AlbumsEndpoints
         });
 
         // ==========
+        // POST - Add a track to an album
+        // ==========
+        group.MapPost("/{albumId:guid}/tracks", async (
+            Guid albumId,
+            AddAlbumTrackRequest request,
+            AppDbContext db,
+            CancellationToken ct
+        ) =>
+        {
+            // Ensure that the album exists
+            var albumExists = await db.Albums.AnyAsync(x => x.Id == albumId, ct);
+            if (!albumExists) return Results.NotFound(new
+            {
+               message = "Album not found." 
+            });
+
+            // Ensure that the track exists
+            var trackExists = await db.Tracks.AnyAsync(x => x.Id == request.TrackId, ct);
+            if (!trackExists) return Results.NotFound(new 
+            {
+                message = "Track not found."
+            });
+
+            // Check that the track number is valid
+            if (request.TrackNumber <= 0) return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["trackNumber"] = ["Track number is not valid."]
+            });
+
+            // Check if the relationship already exists
+            var relationshipExists = await db.AlbumTracks.AnyAsync(x => 
+                x.AlbumId == albumId &&
+                x.TrackId == request.TrackId,
+                ct);
+            if (relationshipExists) return Results.Conflict(new
+            {
+                message = "This track is already associated with this album."
+            });
+
+            // Check that the track number is not already taken for this album
+            var trackNumberExists = await db.AlbumTracks.AnyAsync(x => 
+            x.AlbumId == albumId &&
+            x.TrackNumber == request.TrackNumber, 
+            ct);
+            if (trackNumberExists)
+            {
+                return Results.Conflict(new
+                {
+                    message = "This track number is already taken for this album."
+                });
+            }
+
+            var albumTrack = new AlbumTrack
+            {
+                AlbumId = albumId,
+                TrackId = request.TrackId,
+                TrackNumber = request.TrackNumber
+            };
+
+            db.AlbumTracks.Add(albumTrack);
+            await db.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
+
+        // ==========
         // PUT - Update a single album
         // ==========
         group.MapPut("/{id:guid}", async (
