@@ -66,7 +66,8 @@ public sealed record AlbumDetailResponse(
     int ReleaseYear,
     decimal? CuratedScore,
     IReadOnlyList<AlbumArtistResponse> Artists,
-    IReadOnlyList<AlbumGenreResponse> Genres
+    IReadOnlyList<AlbumGenreResponse> Genres,
+    IReadOnlyList<AlbumTrackResponse> Tracks
 );
 
 public sealed record AlbumArtistResponse(
@@ -79,4 +80,11 @@ public sealed record AlbumGenreResponse(
     Guid GenreId,
     string GenreName,
     bool IsPrimary
+);
+
+public sealed record AlbumTrackResponse(
+    Guid TrackId,
+    string TrackName,
+    TimeSpan? Duration,
+    int TrackNumber
 );

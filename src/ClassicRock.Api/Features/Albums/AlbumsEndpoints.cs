@@ -52,12 +52,12 @@ public static class AlbumsEndpoints
             var album = await db.Albums
                 .AsNoTracking()
                 .Where(x => x.Id == id)
-                .AsNoTracking()
                 .Select(x => new AlbumDetailResponse(
                     x.Id,
                     x.Title,
                     x.ReleaseYear,
                     x.CuratedScore,
+
                     x.AlbumArtists
                         .OrderBy(aa => aa.Role)
                         .ThenBy(aa => aa.Artist.Name)
@@ -67,6 +67,7 @@ public static class AlbumsEndpoints
                             aa.Role
                         ))
                         .ToList(),
+
                     x.AlbumGenres
                         .OrderByDescending(ag => ag.IsPrimary)
                         .ThenBy(ag => ag.Genre.Name)
@@ -74,6 +75,17 @@ public static class AlbumsEndpoints
                             ag.GenreId,
                             ag.Genre.Name,
                             ag.IsPrimary
+                        ))
+                        .ToList(),
+                    
+                    x.AlbumTracks
+                        .OrderBy(at => at.TrackNumber)
+                        .ThenBy(at => at.Track.Name)
+                        .Select(at => new AlbumTrackResponse(
+                            at.TrackId,
+                            at.Track.Name,
+                            at.Track.Duration,
+                            at.TrackNumber
                         ))
                         .ToList()
                 ))
