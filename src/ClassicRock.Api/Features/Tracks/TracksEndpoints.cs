@@ -98,6 +98,21 @@ public static class TracksEndpoints
             return Results.Ok(new TrackResponse(track.Id, track.Name, track.Duration));
         });
 
+        // ==========
+        // DELETE - Delete single track
+        // ==========
+        group.MapDelete("/", async (Guid id, AppDbContext db, CancellationToken ct) =>
+        {
+            // Find the track
+            var track = await db.Tracks.FirstOrDefaultAsync(x => x.Id == id, ct);
+            if (track is null) return Results.NotFound(); 
+
+            // Remove the track & save
+            db.Tracks.Remove(track);
+            await db.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
         return app;
     }
 }

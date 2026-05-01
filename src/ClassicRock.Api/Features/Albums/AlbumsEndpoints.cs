@@ -360,7 +360,21 @@ public static class AlbumsEndpoints
             return Results.Ok(new AlbumResponse(album.Id, album.Title, album.ReleaseYear, album.CuratedScore, PrimaryArtistName: null, PrimaryGenreName: null));
         });
 
+        // =========
+        // DELETE - Delete a single album
+        // =========
+        group.MapDelete("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
+        {
+            // Fetch the album by ID
+            var album = await db.Albums.FirstOrDefaultAsync(x => x.Id == id, ct);
+            if (album is null) return Results.NotFound();
 
+            // Remove the album & save
+            db.Albums.Remove(album);
+            await db.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
         return app;
     }
 }

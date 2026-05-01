@@ -13,7 +13,7 @@ public static class ArtistsEndpoints
             .RequireRateLimiting("public");
 
         // ==========
-        // GET
+        // GET - Get All Artists
         // ==========
         group.MapGet("/", async (AppDbContext db, CancellationToken ct) =>
             {
@@ -26,7 +26,7 @@ public static class ArtistsEndpoints
             });
 
         // ==========
-        // GET BY ID
+        // GET - Get Artist By Id
         // ==========
         group.MapGet("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
         {
@@ -44,8 +44,12 @@ public static class ArtistsEndpoints
         })
         .WithName("GetArtistById");
 
+        // =========
+        // GET - Get All Albums By Artist
+        // =========
+
         // ==========
-        // POST
+        // POST - Create Artist
         // ==========
         group.MapPost("/", async (
             CreateArtistRequest request, 
@@ -78,7 +82,7 @@ public static class ArtistsEndpoints
         });
 
         // ==========
-        // PUT
+        // PUT - Update Single Artist
         // ==========
         group.MapPut("/{id:guid}", async (
             Guid id,
@@ -111,6 +115,20 @@ public static class ArtistsEndpoints
             return Results.Ok(new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear));
         });
 
+        // ==========
+        // DELETE - Delete a single artist
+        group.MapDelete("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
+        {
+            // Find the artist
+            var artist = await db.Artists.FirstOrDefaultAsync(x => x.Id == id, ct);
+            if (artist is null) return Results.NotFound(); 
+
+            // Remove the artist from the table & save changes
+            db.Artists.Remove(artist);
+            await db.SaveChangesAsync(ct);
+
+            return Results.NoContent();
+        });
         return app;
     }
 }
