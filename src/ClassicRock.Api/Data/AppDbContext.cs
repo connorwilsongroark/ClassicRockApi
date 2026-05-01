@@ -85,7 +85,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
             entity.HasOne(x => x.Genre)
                 .WithMany(x => x.ArtistGenres)
                 .HasForeignKey(x => x.GenreId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AlbumGenre>(entity =>
@@ -103,7 +103,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
             entity.HasOne(x => x.Genre)
                 .WithMany(x => x.AlbumGenres)
                 .HasForeignKey(x => x.GenreId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AlbumArtist>(entity =>
@@ -121,13 +121,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
             entity.HasOne(x => x.Artist)
                 .WithMany(x => x.AlbumArtists)
                 .HasForeignKey(x => x.ArtistId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AlbumTrack>(entity =>
         {
             entity.ToTable("AlbumTracks");
             entity.HasKey(x => new { x.AlbumId, x.TrackId });
+
+            entity.HasIndex(x => new {x.AlbumId, x.TrackNumber}).IsUnique();
 
             entity.Property(x => x.TrackNumber).IsRequired();
 
@@ -139,7 +141,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
             entity.HasOne(x => x.Track)
                 .WithMany(x => x.AlbumTracks)
                 .HasForeignKey(x => x.TrackId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
 

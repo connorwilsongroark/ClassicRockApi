@@ -101,7 +101,7 @@ public static class TracksEndpoints
         // ==========
         // DELETE - Delete single track
         // ==========
-        group.MapDelete("/", async (Guid id, AppDbContext db, CancellationToken ct) =>
+        group.MapDelete("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
         {
             // Find the track
             var track = await db.Tracks.FirstOrDefaultAsync(x => x.Id == id, ct);
