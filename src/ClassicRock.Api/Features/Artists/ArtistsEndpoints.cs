@@ -16,14 +16,18 @@ public static class ArtistsEndpoints
         // GET - Get All Artists
         // ==========
         group.MapGet("/", async (AppDbContext db, CancellationToken ct) =>
-            {
-                var artists = await db.Artists
-                    .OrderBy(x => x.Name)
-                    .Select(x => new ArtistResponse(x.Id, x.Name, x.Country, x.FormedYear))
-                    .ToListAsync(ct);
+        {
+            var artists = await db.Artists
+                .AsNoTracking()
+                .OrderBy(x => x.Name)
+                .Select(x => new ArtistResponse(x.Id, x.Name, x.Country, x.FormedYear))
+                .ToListAsync(ct);
 
-                return Results.Ok(artists);
-            });
+            return Results.Ok(artists);
+        })
+        .WithSummary("Get all artists")
+        .WithDescription("Returns a lightweight list of all artists ordered by name.")
+        .Produces<List<ArtistResponse>>(StatusCodes.Status200OK);
 
         // ==========
         // GET - Get Artist By Id
@@ -31,6 +35,7 @@ public static class ArtistsEndpoints
         group.MapGet("/{id:guid}", async (Guid id, AppDbContext db, CancellationToken ct) =>
         {
             var artist = await db.Artists
+                .AsNoTracking()
                 .Where(x => x.Id == id)
                 .Select(x => new ArtistResponse(
                     x.Id,
@@ -42,7 +47,11 @@ public static class ArtistsEndpoints
 
                 return artist is null ? Results.NotFound() : Results.Ok(artist);
         })
-        .WithName("GetArtistById");
+        .WithName("GetArtistById")
+        .WithSummary("Get an artist by ID")
+        .WithDescription("Returns a single artist by its unique identifier.")
+        .Produces<ArtistResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         // =========
         // GET - Get All Albums By Artist
@@ -79,7 +88,11 @@ public static class ArtistsEndpoints
                 new { id = artist.Id },
                 new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear)
             );
-        });
+        })
+        .WithSummary("Create an artist")
+        .WithDescription("Creates a new artist and returns the created resource.")
+        .Produces<ArtistResponse>(StatusCodes.Status201Created)
+        .ProducesValidationProblem();
 
         // ==========
         // PUT - Update Single Artist
@@ -113,7 +126,12 @@ public static class ArtistsEndpoints
 
             // Return the updated data to the user
             return Results.Ok(new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear));
-        });
+        })
+        .WithSummary("Update an artist")
+        .WithDescription("Updates the name, country, and formed year for an existing artist.")
+        .Produces<ArtistResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesValidationProblem();
 
         // ==========
         // DELETE - Delete a single artist
@@ -128,7 +146,12 @@ public static class ArtistsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Delete an artist")
+        .WithDescription("Deletes an artist and removes its album/genre associations through configured cascade behavior.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
+
         return app;
     }
 }

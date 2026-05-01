@@ -24,7 +24,10 @@ public static class TracksEndpoints
                 .ToListAsync(ct);
 
             return Results.Ok(tracks);
-        });
+        })
+        .WithSummary("Get all tracks")
+        .WithDescription("Returns a lightweight list of all tracks ordered by name.")
+        .Produces<List<TrackResponse>>(StatusCodes.Status200OK);
 
         // ==========
         // GET - Get tracks by ID
@@ -40,7 +43,12 @@ public static class TracksEndpoints
             return track is null
                 ? Results.NotFound()
                 : Results.Ok(track);
-        }).WithName("GetTrackById");
+        })
+        .WithName("GetTrackById")
+        .WithSummary("Get a track by ID")
+        .WithDescription("Returns a single track by its unique ID")
+        .Produces<TrackResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         // ==========
         // POST - Create new tracks
@@ -69,7 +77,11 @@ public static class TracksEndpoints
                 new { id = track.Id},
                 new TrackResponse(track.Id, track.Name, track.Duration)
             );
-        });
+        })
+        .WithSummary("Create a track")
+        .WithDescription("Creates a new track and returns the created resource.")
+        .Produces<TrackResponse>(StatusCodes.Status201Created)
+        .ProducesValidationProblem();
 
         // ==========
         // PUT - Update single track details
@@ -96,7 +108,12 @@ public static class TracksEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.Ok(new TrackResponse(track.Id, track.Name, track.Duration));
-        });
+        })
+        .WithSummary("Update a track")
+        .WithDescription("Updates the name and duration for an existing track.")
+        .Produces<TrackResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesValidationProblem();
 
         // ==========
         // DELETE - Delete single track
@@ -112,7 +129,11 @@ public static class TracksEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Delete a track")
+        .WithDescription("Deletes a track and removes any album-track associations through configured cascade behavior.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
         return app;
     }
 }

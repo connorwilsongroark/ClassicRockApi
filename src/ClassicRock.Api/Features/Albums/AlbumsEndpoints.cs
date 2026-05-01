@@ -38,7 +38,10 @@ public static class AlbumsEndpoints
                 .ToListAsync(ct);
 
             return Results.Ok(albums);
-        });
+        })
+        .WithSummary("Get all albums")
+        .WithDescription("Returns a lightweight list of albums with primary artist and genre.")
+        .Produces<List<AlbumResponse>>(StatusCodes.Status200OK);
 
         group.MapGet("/{id:guid}", async (
             Guid id,
@@ -49,6 +52,7 @@ public static class AlbumsEndpoints
             var album = await db.Albums
                 .AsNoTracking()
                 .Where(x => x.Id == id)
+                .AsNoTracking()
                 .Select(x => new AlbumDetailResponse(
                     x.Id,
                     x.Title,
@@ -76,10 +80,17 @@ public static class AlbumsEndpoints
                 .FirstOrDefaultAsync(ct);
 
             return album is null
-                ? Results.NotFound()
+                ? Results.NotFound(new
+                {
+                    message = "Could not find an album with this ID."
+                })
                 : Results.Ok(album);
         })
-        .WithName("GetAlbumById");
+        .WithName("GetAlbumById")
+        .WithSummary("Get album by ID")
+        .WithDescription("Returns full album details including artists and genres.")
+        .Produces<AlbumDetailResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", async (
             CreateAlbumRequest request,
@@ -117,7 +128,11 @@ public static class AlbumsEndpoints
                     PrimaryGenreName: null
                 )
             );
-        });
+        })
+        .WithSummary("Create an album")
+        .WithDescription("Creates a new album.")
+        .Produces<AlbumResponse>(StatusCodes.Status201Created)
+        .ProducesValidationProblem();
 
         group.MapPut("/{id:guid}", async (
             Guid id,
@@ -137,7 +152,10 @@ public static class AlbumsEndpoints
 
             if (album is null)
             {
-                return Results.NotFound();
+                return Results.NotFound(new
+                {
+                    message = "Could not find an album with this ID."
+                });
             }
 
             album.Title = AlbumValidator.NormalizeTitle(request.Title);
@@ -154,7 +172,12 @@ public static class AlbumsEndpoints
                 PrimaryArtistName: null,
                 PrimaryGenreName: null
             ));
-        });
+        })
+        .WithSummary("Update an album")
+        .WithDescription("Updates album details.")
+        .Produces<AlbumResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesValidationProblem();
 
         group.MapDelete("/{id:guid}", async (
             Guid id,
@@ -173,7 +196,11 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Delete an album")
+        .WithDescription("Deletes an album and removes all related associations.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
 
         // =====================
         // Album Artists
@@ -247,7 +274,13 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Add an artist to an album")
+        .WithDescription("Creates an association between an album and an artist with an artist ID.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .ProducesValidationProblem();
 
         group.MapPut("/{albumId:guid}/artists/{artistId:guid}", async (Guid albumId, Guid artistId, UpdateAlbumArtistRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -294,7 +327,13 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Update album artist")
+        .WithDescription("Updates artist metadata such as the artist's role on a specific album.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .ProducesValidationProblem();
 
         group.MapDelete("/{albumId:guid}/artists/{artistId:guid}", async (
             Guid albumId,
@@ -320,7 +359,11 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Remove artist from album")
+        .WithDescription("Removes the association between an artist and an album.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
 
         // =====================
         // Album Genres
@@ -386,7 +429,13 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Add a genre to an album")
+        .WithDescription("Creates an association between an album and a genre with a genre ID.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .ProducesValidationProblem();
 
         group.MapPut("/{albumId:guid}/genres/{genreId:guid}", async (Guid albumId, Guid genreId, UpdateAlbumGenreRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -407,7 +456,7 @@ public static class AlbumsEndpoints
                 var currentPrimaryGenres = await db.AlbumGenres
                     .Where(x =>
                         x.AlbumId == albumId &&
-                        x.GenreId == genreId &&
+                        x.GenreId != genreId &&
                         x.IsPrimary)
                     .ToListAsync(ct);
                 
@@ -423,7 +472,13 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Update album genre")
+        .WithDescription("Updates genre metadata such as whether or not it's the primary genre for a specific album.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .ProducesValidationProblem();
 
         group.MapDelete("/{albumId:guid}/genres/{genreId:guid}", async (
             Guid albumId,
@@ -449,7 +504,11 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Remove genre from album")
+        .WithDescription("Removes the association between a genre and an album.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
 
         // =====================
         // Album Tracks
@@ -520,7 +579,13 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Add a track to an album")
+        .WithDescription("Creates an association between an album and a track with a track ID.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .ProducesValidationProblem();
 
         group.MapPut("/{albumId:guid}/tracks/{trackId:guid}", async (Guid albumId, Guid trackId, UpdateAlbumTrackRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -559,7 +624,13 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Update album track")
+        .WithDescription("Updates track metadata such as track number for a specific album.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .ProducesValidationProblem();
 
         group.MapDelete("/{albumId:guid}/tracks/{trackId:guid}", async (
             Guid albumId,
@@ -585,7 +656,11 @@ public static class AlbumsEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.NoContent();
-        });
+        })
+        .WithSummary("Remove track from album")
+        .WithDescription("Removes the association between a track and an album.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
 
         return app;
     }

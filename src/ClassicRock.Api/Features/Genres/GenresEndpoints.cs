@@ -24,7 +24,10 @@ public static class GenresEndpoints
                 .ToListAsync(ct);
             
             return Results.Ok(genres);
-        });
+        })
+        .WithSummary("Get all genres")
+        .WithDescription("Returns a lightweight list of all genres ordered by name.")
+        .Produces<List<GenreResponse>>(StatusCodes.Status200OK);
 
         // =========
         // GET - Get Genre By Id
@@ -41,7 +44,12 @@ public static class GenresEndpoints
             .FirstOrDefaultAsync(ct);
 
             return genre is null ? Results.NotFound() : Results.Ok(genre);
-        }).WithName("GetGenreById");
+        })
+        .WithName("GetGenreById")
+        .WithSummary("Get a genre by ID")
+        .WithDescription("Returns a single genre by its unique identifier.")
+        .Produces<GenreResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         // =========
         // POST - Create New Genre
@@ -84,7 +92,12 @@ public static class GenresEndpoints
                 routeName: "GetGenreById",
                 routeValues: new { id = genre.Id},
                 value: response);
-        });
+        })
+        .WithSummary("Create a genre")
+        .WithDescription("Creates a new genre. Genre names must be unique.")
+        .Produces<GenreResponse>(StatusCodes.Status201Created)
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status409Conflict);
 
         // =========
         // PUT - Update Genre by Id
@@ -103,7 +116,7 @@ public static class GenresEndpoints
             }
 
             // Check if the genre actually exists for the given ID
-            var genre = await db.Genres.FirstOrDefaultAsync(x => x.Id == id);
+            var genre = await db.Genres.FirstOrDefaultAsync(x => x.Id == id, ct);
 
             if (genre is null)
             {
@@ -129,7 +142,13 @@ public static class GenresEndpoints
             await db.SaveChangesAsync(ct);
 
             return Results.Ok(new GenreResponse(genre.Id, genre.Name));
-        });
+        })
+        .WithSummary("Update a genre")
+        .WithDescription("Updates the name of an existing genre. Genre names must remain unique.")
+        .Produces<GenreResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status409Conflict);
 
         // =========
         // DELETE - Delete Genre By Id
@@ -139,18 +158,22 @@ public static class GenresEndpoints
             AppDbContext db,
             CancellationToken ct
         ) =>
-            {
-                // Fetch the genre by ID
-                var genre = await db.Genres.FirstOrDefaultAsync(x => x.Id == id, ct);
+        {
+            // Fetch the genre by ID
+            var genre = await db.Genres.FirstOrDefaultAsync(x => x.Id == id, ct);
 
-                if (genre is null) return Results.NotFound();
+            if (genre is null) return Results.NotFound();
 
-                // Remove the genre
-                db.Genres.Remove(genre);
-                await db.SaveChangesAsync(ct);
+            // Remove the genre
+            db.Genres.Remove(genre);
+            await db.SaveChangesAsync(ct);
 
-                return Results.NoContent();
-            });
+            return Results.NoContent();
+        })
+        .WithSummary("Delete a genre")
+        .WithDescription("Deletes a genre and removes its album/artist genre associations through configured cascade behavior.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
 
         return app;
     }
