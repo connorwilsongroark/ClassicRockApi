@@ -1,39 +1,34 @@
-import { Button } from "./components/ui/button";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import { apiGet } from "./lib/apiClient";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import AppLayout from "./components/layout/AppLayout";
+
+import DashboardPage from "./pages/DashboardPage";
+import AlbumsPage from "./pages/AlbumsPage";
+import ArtistsPage from "./pages/ArtistsPage";
+import TracksPage from "./pages/TracksPage";
+import GenresPage from "./pages/GenresPage";
+
+// type Album = {
+//   id: string;
+//   title: string;
+//   releaseYear: number;
+//   curatedScore: number | null;
+// };
 
 function App() {
   return (
-    <div className='flex items-center justify-center h-screen gap-4'>
-      {/* Button test */}
-      <Button>Click me</Button>
-
-      {/* Dialog test */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant='outline'>Open Dialog</Button>
-        </DialogTrigger>
-
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you sure?</DialogTitle>
-            <DialogDescription>This action cannot be undone.</DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button variant='secondary'>Cancel</Button>
-            <Button>Confirm</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path='/' element={<DashboardPage />} />
+          <Route path='/albums' element={<AlbumsPage />} />
+          <Route path='/artists' element={<ArtistsPage />} />
+          <Route path='/tracks' element={<TracksPage />} />
+          <Route path='/genres' element={<GenresPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

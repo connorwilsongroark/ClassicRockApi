@@ -46,6 +46,22 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// Add CORS
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("admin-dashboard", policy =>
+    {
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -62,6 +78,8 @@ app.UseHttpsRedirection();
 app.UseMiddleware<ApiKeyMiddleware>();
 
 app.UseRateLimiter();
+
+app.UseCors("admin-dashboard");
 
 // Map endpoints
 app.MapArtistsEndpoints();
