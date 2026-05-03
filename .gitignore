@@ -1,8 +1,35 @@
-# Build output
+# =========================
+# .NET / Visual Studio
+# =========================
 bin/
 obj/
-
-# Visual Studio / .NET
 .vs/
 *.user
 *.suo
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
+build/
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Logs
+# =========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# OS / Misc
+# =========================
+.DS_Store
+Thumbs.db
