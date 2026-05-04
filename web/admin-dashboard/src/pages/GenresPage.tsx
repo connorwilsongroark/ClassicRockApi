@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getGenres } from "@/api/genresApi";
+import { getGenres, type GenreListItem } from "@/api/genresApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { CreateGenreDialog } from "@/components/genres/CreateGenreDialog";
+import { EditGenreDialog } from "@/components/genres/EditGenreDialog";
+import { DeleteGenreDialog } from "@/components/genres/DeleteGenreDialog";
 
 export default function GenresPage() {
   const [searchText, setSearchText] = useState("");
+  const [editingGenre, setEditingGenre] = useState<GenreListItem | null>(null);
+  const [genreToDelete, setGenreToDelete] = useState<GenreListItem | null>(
+    null,
+  );
 
   const {
     data: genres = [],
@@ -26,7 +33,7 @@ export default function GenresPage() {
       <PageHeader
         title='Genres'
         description='Create, edit, and manage genre records.'
-        actions={<Button>New Genre</Button>}
+        actions={<CreateGenreDialog />}
       />
 
       <div className='mb-4 max-w-sm'>
@@ -59,9 +66,23 @@ export default function GenresPage() {
                   >
                     <div className='font-medium'>{genre.name}</div>
 
-                    <Button variant='outline' size='sm'>
-                      Edit
-                    </Button>
+                    <div className='flex gap-2'>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => setEditingGenre(genre)}
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        variant='destructive'
+                        size='sm'
+                        onClick={() => setGenreToDelete(genre)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -69,6 +90,22 @@ export default function GenresPage() {
           </div>
         )}
       </div>
+
+      <EditGenreDialog
+        genre={editingGenre}
+        open={editingGenre !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingGenre(null);
+        }}
+      />
+
+      <DeleteGenreDialog
+        genre={genreToDelete}
+        open={genreToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setGenreToDelete(null);
+        }}
+      />
     </div>
   );
 }
