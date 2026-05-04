@@ -22,7 +22,7 @@ export function useArtistMutations() {
       body: {
         name: string;
         country: string | null;
-        formedYear: string | null;
+        formedYear: number | null;
       };
     }) => updateArtist(id, body),
     onSuccess: invalidateArtists,

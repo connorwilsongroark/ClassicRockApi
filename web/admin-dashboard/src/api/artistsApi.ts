@@ -13,13 +13,13 @@ export type ArtistListItem = {
 export type CreateArtistRequest = {
   name: string;
   country: string | null;
-  formedYear: string | null;
+  formedYear: number | null;
 };
 
 export type UpdateArtistRequest = {
   name: string;
   country: string | null;
-  formedYear: string | null;
+  formedYear: number | null;
 };
 
 // =========

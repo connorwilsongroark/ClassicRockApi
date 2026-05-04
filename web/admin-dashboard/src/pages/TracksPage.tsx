@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getTracks } from "@/api/tracksApi";
+import { getTracks, type TrackListItem } from "@/api/tracksApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { CreateTrackDialog } from "@/components/tracks/CreateTrackDialog";
+import { EditTrackDialog } from "@/components/tracks/EditTrackDialog";
+import { DeleteTrackDialog } from "@/components/tracks/DeleteTrackDialog";
 
 export default function TracksPage() {
   const [searchText, setSearchText] = useState("");
+  const [editingTrack, setEditingTrack] = useState<TrackListItem | null>(null);
+  const [trackToDelete, setTrackToDelete] = useState<TrackListItem | null>(
+    null,
+  );
 
   const {
     data: tracks = [],
@@ -26,7 +33,7 @@ export default function TracksPage() {
       <PageHeader
         title='Tracks'
         description='Create, edit, and manage track records.'
-        actions={<Button>New Track</Button>}
+        actions={<CreateTrackDialog />}
       />
 
       <div className='mb-4 max-w-sm'>
@@ -64,9 +71,23 @@ export default function TracksPage() {
                       </div>
                     </div>
 
-                    <Button variant='outline' size='sm'>
-                      Edit
-                    </Button>
+                    <div className='flex gap-2'>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => setEditingTrack(track)}
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        variant='destructive'
+                        size='sm'
+                        onClick={() => setTrackToDelete(track)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -74,6 +95,22 @@ export default function TracksPage() {
           </div>
         )}
       </div>
+
+      <EditTrackDialog
+        track={editingTrack}
+        open={editingTrack !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingTrack(null);
+        }}
+      />
+
+      <DeleteTrackDialog
+        track={trackToDelete}
+        open={trackToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setTrackToDelete(null);
+        }}
+      />
     </div>
   );
 }
