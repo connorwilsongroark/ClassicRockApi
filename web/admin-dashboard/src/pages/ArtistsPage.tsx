@@ -1,26 +1,21 @@
-import { useEffect, useState } from "react";
-import { getArtists, type ArtistListItem } from "@/api/artistsApi";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getArtists } from "@/api/artistsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ArtistsPage() {
-  const [artists, setArtists] = useState<ArtistListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    getArtists()
-      .then(setArtists)
-      .catch((err) => {
-        console.error(err);
-        setError("Could not load artists.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  const {
+    data: artists = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["artists"],
+    queryFn: getArtists,
+  });
 
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(searchText.toLowerCase()),
@@ -45,7 +40,11 @@ export default function ArtistsPage() {
       <div className='rounded-md border bg-background'>
         {isLoading && <div className='p-6 text-sm'>Loading artists...</div>}
 
-        {error && <div className='p-6 text-sm text-destructive'>{error}</div>}
+        {error && (
+          <div className='p-6 text-sm text-destructive'>
+            Could not load artists.
+          </div>
+        )}
 
         {!isLoading && !error && (
           <div className='p-6'>

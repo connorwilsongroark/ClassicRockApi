@@ -1,26 +1,21 @@
-import { useEffect, useState } from "react";
-import { getGenres, type GenreListItem } from "@/api/genresApi";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getGenres } from "@/api/genresApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function GenresPage() {
-  const [genres, setGenres] = useState<GenreListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    getGenres()
-      .then(setGenres)
-      .catch((err) => {
-        console.error(err);
-        setError("Could not load genres.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  const {
+    data: genres = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["genres"],
+    queryFn: getGenres,
+  });
 
   const filteredGenres = genres.filter((genre) =>
     genre.name.toLowerCase().includes(searchText.toLowerCase()),
@@ -45,7 +40,11 @@ export default function GenresPage() {
       <div className='rounded-md border bg-background'>
         {isLoading && <div className='p-6 text-sm'>Loading genres...</div>}
 
-        {error && <div className='p-6 text-sm text-destructive'>{error}</div>}
+        {error && (
+          <div className='p-6 text-sm text-destructive'>
+            Could not load genres.
+          </div>
+        )}
 
         {!isLoading && !error && (
           <div className='p-6'>

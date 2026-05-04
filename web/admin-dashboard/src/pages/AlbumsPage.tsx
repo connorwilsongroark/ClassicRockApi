@@ -1,26 +1,33 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getAlbums, type AlbumListItem } from "@/api/albumsApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { CreateAlbumDialog } from "@/components/albums/CreateAlbumDialog";
+import { EditAlbumDialog } from "@/components/albums/EditAlbumDialog";
+import { DeleteAlbumDialog } from "@/components/albums/DeleteAlbumDialog";
 
 export default function AlbumsPage() {
-  const [albums, setAlbums] = useState<AlbumListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // SEARCH
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    getAlbums()
-      .then(setAlbums)
-      .catch((err) => {
-        console.error(err);
-        setError("Could not load albums.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  // EDIT ALBUM
+  const [editingAlbum, setEditingAlbum] = useState<AlbumListItem | null>(null);
+
+  // DELETE ALBUM
+  const [albumToDelete, setAlbumToDelete] = useState<AlbumListItem | null>(
+    null,
+  );
+
+  const {
+    data: albums = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["albums"],
+    queryFn: getAlbums,
+  });
 
   const filteredAlbums = albums.filter((album) =>
     album.title.toLowerCase().includes(searchText.toLowerCase()),
@@ -31,7 +38,7 @@ export default function AlbumsPage() {
       <PageHeader
         title='Albums'
         description='Create, edit, and manage album records.'
-        actions={<Button>New Album</Button>}
+        actions={<CreateAlbumDialog />}
       />
 
       <div className='mb-4 max-w-sm'>
@@ -45,7 +52,11 @@ export default function AlbumsPage() {
       <div className='rounded-md border bg-background'>
         {isLoading && <div className='p-6 text-sm'>Loading albums...</div>}
 
-        {error && <div className='p-6 text-sm text-destructive'>{error}</div>}
+        {error && (
+          <div className='p-6 text-sm text-destructive'>
+            Could not load albums.
+          </div>
+        )}
 
         {!isLoading && !error && (
           <div className='p-6'>
@@ -62,14 +73,26 @@ export default function AlbumsPage() {
                       <div className='font-medium'>{album.title}</div>
                       <div className='text-sm text-muted-foreground'>
                         {album.releaseYear}
-                        {/* {album.curatedScore !== null &&
-                          ` · Score: ${album.curatedScore}`} */}
                       </div>
                     </div>
 
-                    <Button variant='outline' size='sm'>
-                      Edit
-                    </Button>
+                    <div className='flex gap-2'>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => setEditingAlbum(album)}
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        variant='destructive'
+                        size='sm'
+                        onClick={() => setAlbumToDelete(album)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -77,6 +100,20 @@ export default function AlbumsPage() {
           </div>
         )}
       </div>
+      <EditAlbumDialog
+        album={editingAlbum}
+        open={editingAlbum !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingAlbum(null);
+        }}
+      />
+      <DeleteAlbumDialog
+        album={albumToDelete}
+        open={albumToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setAlbumToDelete(null);
+        }}
+      />
     </div>
   );
 }

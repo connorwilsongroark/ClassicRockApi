@@ -1,26 +1,21 @@
-import { useEffect, useState } from "react";
-import { getTracks, type TrackListItem } from "@/api/tracksApi";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getTracks } from "@/api/tracksApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function TracksPage() {
-  const [tracks, setTracks] = useState<TrackListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    getTracks()
-      .then(setTracks)
-      .catch((err) => {
-        console.error(err);
-        setError("Could not load tracks.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  const {
+    data: tracks = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["tracks"],
+    queryFn: getTracks,
+  });
 
   const filteredTracks = tracks.filter((track) =>
     track.name.toLowerCase().includes(searchText.toLowerCase()),
@@ -45,7 +40,11 @@ export default function TracksPage() {
       <div className='rounded-md border bg-background'>
         {isLoading && <div className='p-6 text-sm'>Loading tracks...</div>}
 
-        {error && <div className='p-6 text-sm text-destructive'>{error}</div>}
+        {error && (
+          <div className='p-6 text-sm text-destructive'>
+            Could not load tracks.
+          </div>
+        )}
 
         {!isLoading && !error && (
           <div className='p-6'>
