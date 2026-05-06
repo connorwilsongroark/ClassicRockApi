@@ -1,7 +1,7 @@
 export default function Topbar() {
   return (
-    <div className='h-14 border-b px-6 flex items-center'>
+    <header className='flex h-14 shrink-0 items-center border-b bg-background px-6'>
       <span className='font-medium'>Classic Rock Admin</span>
-    </div>
+    </header>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getAlbums, type AlbumListItem } from "@/api/albumsApi";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,10 @@ export default function AlbumsPage() {
                     </div>
 
                     <div className='flex gap-2'>
+                      <Button asChild variant='outline' size='sm'>
+                        <Link to={`/albums/${album.id}`}>View</Link>
+                      </Button>
+
                       <Button
                         variant='outline'
                         size='sm'

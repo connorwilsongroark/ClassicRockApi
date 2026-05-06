@@ -1,10 +1,43 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/apiClient";
 
+// =========
+// Types
+// =========
+
 export type AlbumListItem = {
   id: string;
   title: string;
   releaseYear: number;
   curatedScore: number | null;
+};
+
+export type AlbumArtist = {
+  artistId: string;
+  artistName: string;
+  role: number;
+};
+
+export type AlbumGenre = {
+  genreId: string;
+  genreName: string;
+  isPrimary: boolean;
+};
+
+export type AlbumTrack = {
+  trackId: string;
+  trackName: string;
+  trackNumber: number;
+  duration: string | null;
+};
+
+export type AlbumDetail = {
+  id: string;
+  title: string;
+  releaseYear: number;
+  curatedScore: number | null;
+  artists: AlbumArtist[];
+  genres: AlbumGenre[];
+  tracks: AlbumTrack[];
 };
 
 // =========
@@ -29,6 +62,10 @@ export type UpdateAlbumRequest = {
 
 export function getAlbums() {
   return apiGet<AlbumListItem[]>("/api/v1/albums");
+}
+
+export function getAlbumById(id: string) {
+  return apiGet<AlbumDetail>(`/api/v1/albums/${id}`);
 }
 
 export function createAlbum(body: CreateAlbumRequest) {
