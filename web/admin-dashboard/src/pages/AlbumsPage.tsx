@@ -6,15 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CreateAlbumDialog } from "@/components/albums/CreateAlbumDialog";
-import { EditAlbumDialog } from "@/components/albums/EditAlbumDialog";
 import { DeleteAlbumDialog } from "@/components/albums/DeleteAlbumDialog";
 
 export default function AlbumsPage() {
   // SEARCH
   const [searchText, setSearchText] = useState("");
-
-  // EDIT ALBUM
-  const [editingAlbum, setEditingAlbum] = useState<AlbumListItem | null>(null);
 
   // DELETE ALBUM
   const [albumToDelete, setAlbumToDelete] = useState<AlbumListItem | null>(
@@ -79,15 +75,7 @@ export default function AlbumsPage() {
 
                     <div className='flex gap-2'>
                       <Button asChild variant='outline' size='sm'>
-                        <Link to={`/albums/${album.id}`}>View</Link>
-                      </Button>
-
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setEditingAlbum(album)}
-                      >
-                        Edit
+                        <Link to={`/albums/${album.id}`}>View & Edit</Link>
                       </Button>
 
                       <Button
@@ -105,13 +93,6 @@ export default function AlbumsPage() {
           </div>
         )}
       </div>
-      <EditAlbumDialog
-        album={editingAlbum}
-        open={editingAlbum !== null}
-        onOpenChange={(open) => {
-          if (!open) setEditingAlbum(null);
-        }}
-      />
       <DeleteAlbumDialog
         album={albumToDelete}
         open={albumToDelete !== null}
