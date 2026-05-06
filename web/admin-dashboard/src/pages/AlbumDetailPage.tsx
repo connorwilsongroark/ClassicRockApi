@@ -54,7 +54,7 @@ export default function AlbumDetailPage() {
         <AlbumBasicInfoCard album={album} />
         <AlbumArtistsSection albumId={album.id} artists={album.artists} />
         <AlbumGenresSection albumId={album.id} genres={album.genres} />
-        <AlbumTracksSection tracks={album.tracks} />
+        <AlbumTracksSection albumId={album.id} tracks={album.tracks} />
       </div>
     </div>
   );
