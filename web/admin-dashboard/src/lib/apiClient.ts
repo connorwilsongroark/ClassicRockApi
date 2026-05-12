@@ -5,11 +5,11 @@ async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
     },
-    ...options,
   });
 
   if (!response.ok) {
@@ -23,15 +23,17 @@ async function apiRequest<T>(
   return response.json() as Promise<T>;
 }
 
-export function apiGet<T>(path: string): Promise<T> {
-  return apiRequest<T>(path);
+export function apiGet<T>(path: string, options?: RequestInit): Promise<T> {
+  return apiRequest<T>(path, options);
 }
 
 export function apiPost<TResponse, TBody>(
   path: string,
   body: TBody,
+  options?: RequestInit,
 ): Promise<TResponse> {
   return apiRequest<TResponse>(path, {
+    ...options,
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -40,15 +42,21 @@ export function apiPost<TResponse, TBody>(
 export function apiPut<TResponse, TBody>(
   path: string,
   body: TBody,
+  options?: RequestInit,
 ): Promise<TResponse> {
   return apiRequest<TResponse>(path, {
+    ...options,
     method: "PUT",
     body: JSON.stringify(body),
   });
 }
 
-export function apiDelete<TResponse = void>(path: string): Promise<TResponse> {
+export function apiDelete<TResponse = void>(
+  path: string,
+  options?: RequestInit,
+): Promise<TResponse> {
   return apiRequest<TResponse>(path, {
+    ...options,
     method: "DELETE",
   });
 }

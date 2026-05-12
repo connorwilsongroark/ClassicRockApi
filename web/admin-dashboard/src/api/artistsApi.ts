@@ -29,17 +29,34 @@ export function getArtists() {
   return apiGet<ArtistListItem[]>("/api/v1/artists");
 }
 
-export function createArtist(body: CreateArtistRequest) {
-  return apiPost<ArtistListItem, CreateArtistRequest>("/api/v1/artists", body);
+export function createArtist(body: CreateArtistRequest, token: string) {
+  return apiPost<ArtistListItem, CreateArtistRequest>("/api/v1/artists", body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
 
-export function updateArtist(id: string, body: UpdateArtistRequest) {
+export function updateArtist(
+  id: string,
+  body: UpdateArtistRequest,
+  token: string,
+) {
   return apiPut<ArtistListItem, UpdateArtistRequest>(
     `/api/v1/artists/${id}`,
     body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
   );
 }
 
-export function deleteArtist(id: string) {
-  return apiDelete(`/api/v1/artists/${id}`);
+export function deleteArtist(id: string, token: string) {
+  return apiDelete(`/api/v1/artists/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }

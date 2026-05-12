@@ -1,20 +1,28 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { createGenre, deleteGenre, updateGenre } from "@/api/genresApi";
 
 export function useGenreMutations() {
   const queryClient = useQueryClient();
+
+  const { getAccessTokenSilently } = useAuth0();
 
   const invalidateGenres = () => {
     queryClient.invalidateQueries({ queryKey: ["genres"] });
   };
 
   const createGenreMutation = useMutation({
-    mutationFn: createGenre,
+    mutationFn: async (body: { name: string }) => {
+      const token = await getAccessTokenSilently();
+
+      return createGenre(body, token);
+    },
     onSuccess: invalidateGenres,
   });
 
   const updateGenreMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       body,
     }: {
@@ -22,12 +30,20 @@ export function useGenreMutations() {
       body: {
         name: string;
       };
-    }) => updateGenre(id, body),
+    }) => {
+      const token = await getAccessTokenSilently();
+
+      return updateGenre(id, body, token);
+    },
     onSuccess: invalidateGenres,
   });
 
   const deleteGenreMutation = useMutation({
-    mutationFn: deleteGenre,
+    mutationFn: async (id: string) => {
+      const token = await getAccessTokenSilently();
+
+      return deleteGenre(id, token);
+    },
     onSuccess: invalidateGenres,
   });
 

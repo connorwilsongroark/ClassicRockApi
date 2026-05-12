@@ -23,17 +23,34 @@ export function getGenres() {
   return apiGet<GenreListItem[]>("/api/v1/genres");
 }
 
-export function createGenre(body: CreateGenreRequest) {
-  return apiPost<GenreListItem, CreateGenreRequest>("/api/v1/genres", body);
+export function createGenre(body: CreateGenreRequest, token: string) {
+  return apiPost<GenreListItem, CreateGenreRequest>("/api/v1/genres", body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
 
-export function updateGenre(id: string, body: UpdateGenreRequest) {
+export function updateGenre(
+  id: string,
+  body: UpdateGenreRequest,
+  token: string,
+) {
   return apiPut<GenreListItem, UpdateGenreRequest>(
     `/api/v1/genres/${id}`,
     body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
   );
 }
 
-export function deleteGenre(id: string) {
-  return apiDelete(`/api/v1/genres/${id}`);
+export function deleteGenre(id: string, token: string) {
+  return apiDelete(`/api/v1/genres/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }

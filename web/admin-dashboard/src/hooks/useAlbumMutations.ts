@@ -1,20 +1,32 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { createAlbum, deleteAlbum, updateAlbum } from "@/api/albumsApi";
 
 export function useAlbumMutations() {
   const queryClient = useQueryClient();
+
+  const { getAccessTokenSilently } = useAuth0();
 
   const invalidateAlbums = () => {
     queryClient.invalidateQueries({ queryKey: ["albums"] });
   };
 
   const createAlbumMutation = useMutation({
-    mutationFn: createAlbum,
+    mutationFn: async (body: {
+      title: string;
+      releaseYear: number;
+      curatedScore: number | null;
+    }) => {
+      const token = await getAccessTokenSilently();
+
+      return createAlbum(body, token);
+    },
     onSuccess: invalidateAlbums,
   });
 
   const updateAlbumMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       body,
     }: {
@@ -24,12 +36,20 @@ export function useAlbumMutations() {
         releaseYear: number;
         curatedScore: number | null;
       };
-    }) => updateAlbum(id, body),
+    }) => {
+      const token = await getAccessTokenSilently();
+
+      return updateAlbum(id, body, token);
+    },
     onSuccess: invalidateAlbums,
   });
 
   const deleteAlbumMutation = useMutation({
-    mutationFn: deleteAlbum,
+    mutationFn: async (id: string) => {
+      const token = await getAccessTokenSilently();
+
+      return deleteAlbum(id, token);
+    },
     onSuccess: invalidateAlbums,
   });
 

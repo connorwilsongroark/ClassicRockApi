@@ -68,17 +68,34 @@ export function getAlbumById(id: string) {
   return apiGet<AlbumDetail>(`/api/v1/albums/${id}`);
 }
 
-export function createAlbum(body: CreateAlbumRequest) {
-  return apiPost<AlbumListItem, CreateAlbumRequest>("/api/v1/albums", body);
+export function createAlbum(body: CreateAlbumRequest, token: string) {
+  return apiPost<AlbumListItem, CreateAlbumRequest>("/api/v1/albums", body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
 
-export function updateAlbum(id: string, body: UpdateAlbumRequest) {
+export function updateAlbum(
+  id: string,
+  body: UpdateAlbumRequest,
+  token: string,
+) {
   return apiPut<AlbumListItem, UpdateAlbumRequest>(
     `/api/v1/albums/${id}`,
     body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
   );
 }
 
-export function deleteAlbum(id: string) {
-  return apiDelete(`/api/v1/albums/${id}`);
+export function deleteAlbum(id: string, token: string) {
+  return apiDelete(`/api/v1/albums/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }

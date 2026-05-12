@@ -1,4 +1,6 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import {
   addGenreToAlbum,
   removeGenreFromAlbum,
@@ -9,6 +11,8 @@ import {
 export function useAlbumGenreMutations(albumId: string) {
   const queryClient = useQueryClient();
 
+  const { getAccessTokenSilently } = useAuth0();
+
   const invalidateAlbumDetail = () => {
     queryClient.invalidateQueries({ queryKey: ["albums", albumId] });
   };
@@ -17,7 +21,11 @@ export function useAlbumGenreMutations(albumId: string) {
   // ADD GENRE
   // =========
   const addGenreMutation = useMutation({
-    mutationFn: (body: AddAlbumGenreRequest) => addGenreToAlbum(albumId, body),
+    mutationFn: async (body: AddAlbumGenreRequest) => {
+      const token = await getAccessTokenSilently();
+
+      return addGenreToAlbum(albumId, body, token);
+    },
     onSuccess: invalidateAlbumDetail,
   });
 
@@ -25,16 +33,24 @@ export function useAlbumGenreMutations(albumId: string) {
   // SET PRIMARY / UPDATE
   // =========
   const updateGenreMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       genreId,
       isPrimary,
     }: {
       genreId: string;
       isPrimary: boolean;
-    }) =>
-      updateAlbumGenre(albumId, genreId, {
-        isPrimary,
-      }),
+    }) => {
+      const token = await getAccessTokenSilently();
+
+      return updateAlbumGenre(
+        albumId,
+        genreId,
+        {
+          isPrimary,
+        },
+        token,
+      );
+    },
     onSuccess: invalidateAlbumDetail,
   });
 
@@ -42,7 +58,11 @@ export function useAlbumGenreMutations(albumId: string) {
   // REMOVE GENRE
   // =========
   const removeGenreMutation = useMutation({
-    mutationFn: (genreId: string) => removeGenreFromAlbum(albumId, genreId),
+    mutationFn: async (genreId: string) => {
+      const token = await getAccessTokenSilently();
+
+      return removeGenreFromAlbum(albumId, genreId, token);
+    },
     onSuccess: invalidateAlbumDetail,
   });
 
