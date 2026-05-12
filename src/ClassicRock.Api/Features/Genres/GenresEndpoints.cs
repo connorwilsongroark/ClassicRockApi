@@ -1,3 +1,4 @@
+using ClassicRock.Api.Auth;
 using ClassicRock.Api.Data;
 using ClassicRock.Api.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -93,11 +94,14 @@ public static class GenresEndpoints
                 routeValues: new { id = genre.Id},
                 value: response);
         })
+        .RequireAuthorization(Permissions.CreateGenres)
         .WithSummary("Create a genre")
         .WithDescription("Creates a new genre. Genre names must be unique.")
         .Produces<GenreResponse>(StatusCodes.Status201Created)
         .ProducesValidationProblem()
-        .Produces(StatusCodes.Status409Conflict);
+        .Produces(StatusCodes.Status409Conflict)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // =========
         // PUT - Update Genre by Id
@@ -143,12 +147,15 @@ public static class GenresEndpoints
 
             return Results.Ok(new GenreResponse(genre.Id, genre.Name));
         })
+        .RequireAuthorization(Permissions.UpdateGenres)
         .WithSummary("Update a genre")
         .WithDescription("Updates the name of an existing genre. Genre names must remain unique.")
         .Produces<GenreResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
         .ProducesValidationProblem()
-        .Produces(StatusCodes.Status409Conflict);
+        .Produces(StatusCodes.Status409Conflict)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // =========
         // DELETE - Delete Genre By Id
@@ -170,10 +177,13 @@ public static class GenresEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.DeleteGenres)
         .WithSummary("Delete a genre")
         .WithDescription("Deletes a genre and removes its album/artist genre associations through configured cascade behavior.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         return app;
     }

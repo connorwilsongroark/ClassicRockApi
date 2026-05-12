@@ -1,3 +1,4 @@
+using ClassicRock.Api.Auth;
 using ClassicRock.Api.Data;
 using ClassicRock.Api.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -78,10 +79,13 @@ public static class TracksEndpoints
                 new TrackResponse(track.Id, track.Name, track.Duration)
             );
         })
+        .RequireAuthorization(Permissions.CreateTracks)
         .WithSummary("Create a track")
         .WithDescription("Creates a new track and returns the created resource.")
         .Produces<TrackResponse>(StatusCodes.Status201Created)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // ==========
         // PUT - Update single track details
@@ -109,11 +113,14 @@ public static class TracksEndpoints
 
             return Results.Ok(new TrackResponse(track.Id, track.Name, track.Duration));
         })
+        .RequireAuthorization(Permissions.UpdateTracks)
         .WithSummary("Update a track")
         .WithDescription("Updates the name and duration for an existing track.")
         .Produces<TrackResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // ==========
         // DELETE - Delete single track
@@ -130,10 +137,14 @@ public static class TracksEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.DeleteTracks)
         .WithSummary("Delete a track")
         .WithDescription("Deletes a track and removes any album-track associations through configured cascade behavior.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
+        
         return app;
     }
 }

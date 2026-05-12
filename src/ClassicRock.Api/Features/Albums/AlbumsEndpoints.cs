@@ -1,3 +1,4 @@
+using ClassicRock.Api.Auth;
 using ClassicRock.Api.Data;
 using ClassicRock.Api.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -141,10 +142,13 @@ public static class AlbumsEndpoints
                 )
             );
         })
+        .RequireAuthorization(Permissions.CreateAlbums)
         .WithSummary("Create an album")
         .WithDescription("Creates a new album.")
         .Produces<AlbumResponse>(StatusCodes.Status201Created)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{id:guid}", async (
             Guid id,
@@ -185,11 +189,14 @@ public static class AlbumsEndpoints
                 PrimaryGenreName: null
             ));
         })
+        .RequireAuthorization(Permissions.UpdateAlbums)
         .WithSummary("Update an album")
         .WithDescription("Updates album details.")
         .Produces<AlbumResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapDelete("/{id:guid}", async (
             Guid id,
@@ -209,10 +216,13 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.DeleteAlbums)
         .WithSummary("Delete an album")
         .WithDescription("Deletes an album and removes all related associations.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // =====================
         // Album Artists
@@ -287,12 +297,15 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumArtists)
         .WithSummary("Add an artist to an album")
         .WithDescription("Creates an association between an album and an artist with an artist ID.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{albumId:guid}/artists/{artistId:guid}", async (Guid albumId, Guid artistId, UpdateAlbumArtistRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -340,12 +353,15 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumArtists)
         .WithSummary("Update album artist")
         .WithDescription("Updates artist metadata such as the artist's role on a specific album.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapDelete("/{albumId:guid}/artists/{artistId:guid}", async (
             Guid albumId,
@@ -372,10 +388,13 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumArtists)
         .WithSummary("Remove artist from album")
         .WithDescription("Removes the association between an artist and an album.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // =====================
         // Album Genres
@@ -442,12 +461,15 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumGenres)
         .WithSummary("Add a genre to an album")
         .WithDescription("Creates an association between an album and a genre with a genre ID.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{albumId:guid}/genres/{genreId:guid}", async (Guid albumId, Guid genreId, UpdateAlbumGenreRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -485,12 +507,15 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumGenres)
         .WithSummary("Update album genre")
         .WithDescription("Updates genre metadata such as whether or not it's the primary genre for a specific album.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapDelete("/{albumId:guid}/genres/{genreId:guid}", async (
             Guid albumId,
@@ -517,10 +542,13 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumGenres)
         .WithSummary("Remove genre from album")
         .WithDescription("Removes the association between a genre and an album.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // =====================
         // Album Tracks
@@ -592,12 +620,15 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumTracks)
         .WithSummary("Add a track to an album")
         .WithDescription("Creates an association between an album and a track with a track ID.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{albumId:guid}/tracks/{trackId:guid}", async (Guid albumId, Guid trackId, UpdateAlbumTrackRequest request, AppDbContext db, CancellationToken ct) =>
         {
@@ -637,12 +668,15 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumTracks)
         .WithSummary("Update album track")
         .WithDescription("Updates track metadata such as track number for a specific album.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         group.MapDelete("/{albumId:guid}/tracks/{trackId:guid}", async (
             Guid albumId,
@@ -669,10 +703,13 @@ public static class AlbumsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.ManageAlbumTracks)
         .WithSummary("Remove track from album")
         .WithDescription("Removes the association between a track and an album.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         return app;
     }

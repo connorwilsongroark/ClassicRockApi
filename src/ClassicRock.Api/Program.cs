@@ -7,6 +7,8 @@ using ClassicRock.Api.Features.Tracks;
 using ClassicRock.Api.Infrastructure;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using ClassicRock.Api.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +49,18 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// Add Auth
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Auth0:Authority"];
+        options.Audience = builder.Configuration["Auth0:Audience"];
+    });
+
+// we're using a custom auth extension method, so use this
+builder.Services.AddApplicationAuthorization();
+
 // Add CORS
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
@@ -81,6 +95,9 @@ app.UseMiddleware<ApiKeyMiddleware>();
 app.UseRateLimiter();
 
 app.UseCors("admin-dashboard");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Map endpoints
 app.MapDashboardEndpoints();

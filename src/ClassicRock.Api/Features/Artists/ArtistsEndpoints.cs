@@ -1,3 +1,4 @@
+using ClassicRock.Api.Auth;
 using ClassicRock.Api.Data;
 using ClassicRock.Api.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -89,10 +90,13 @@ public static class ArtistsEndpoints
                 new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear)
             );
         })
+        .RequireAuthorization(Permissions.CreateArtists)
         .WithSummary("Create an artist")
         .WithDescription("Creates a new artist and returns the created resource.")
         .Produces<ArtistResponse>(StatusCodes.Status201Created)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // ==========
         // PUT - Update Single Artist
@@ -127,11 +131,14 @@ public static class ArtistsEndpoints
             // Return the updated data to the user
             return Results.Ok(new ArtistResponse(artist.Id, artist.Name, artist.Country, artist.FormedYear));
         })
+        .RequireAuthorization(Permissions.UpdateArtists)
         .WithSummary("Update an artist")
         .WithDescription("Updates the name, country, and formed year for an existing artist.")
         .Produces<ArtistResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
-        .ProducesValidationProblem();
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         // ==========
         // DELETE - Delete a single artist
@@ -147,10 +154,13 @@ public static class ArtistsEndpoints
 
             return Results.NoContent();
         })
+        .RequireAuthorization(Permissions.DeleteArtists)
         .WithSummary("Delete an artist")
         .WithDescription("Deletes an artist and removes its album/genre associations through configured cascade behavior.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
 
         return app;
     }
