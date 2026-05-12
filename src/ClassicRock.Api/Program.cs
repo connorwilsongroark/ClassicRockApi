@@ -1,6 +1,7 @@
 using ClassicRock.Api.Data;
 using ClassicRock.Api.Features.Albums;
 using ClassicRock.Api.Features.Artists;
+using ClassicRock.Api.Features.Dashboard;
 using ClassicRock.Api.Features.Genres;
 using ClassicRock.Api.Features.Tracks;
 using ClassicRock.Api.Infrastructure;
@@ -82,6 +83,7 @@ app.UseRateLimiter();
 app.UseCors("admin-dashboard");
 
 // Map endpoints
+app.MapDashboardEndpoints();
 app.MapArtistsEndpoints();
 app.MapAlbumsEndpoints();
 app.MapGenresEndpoints();
