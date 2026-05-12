@@ -22,7 +22,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     // Using SQL Server implementation for now. Swap to cloud later.
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // Add rate limiting settings
