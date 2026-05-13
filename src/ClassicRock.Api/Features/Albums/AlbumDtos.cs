@@ -88,3 +88,25 @@ public sealed record AlbumTrackResponse(
     TimeSpan? Duration,
     int TrackNumber
 );
+
+public sealed record AlbumBrowseResponse(
+    Guid Id,
+    string Title,
+    int ReleaseYear,
+    decimal? CuratedScore,
+    IReadOnlyList<string> Artists,
+    IReadOnlyList<string> Genres
+);
+// =====================
+// Album Queries
+// =====================
+public sealed record AlbumBrowseQuery(
+    string? Artist,
+    string? Genre,
+    int? ReleaseYear,
+    int? Decade,
+    string? Search,
+    string? Sort,
+    int Page = 1,
+    int PageSize = 20
+);

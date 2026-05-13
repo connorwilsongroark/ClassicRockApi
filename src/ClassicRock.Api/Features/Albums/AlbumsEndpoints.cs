@@ -711,6 +711,124 @@ public static class AlbumsEndpoints
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden);
 
+        // =====================
+        // Album Browsing
+        // =====================
+group.MapGet("/browse", async (
+    [AsParameters] AlbumBrowseQuery query,
+    AppDbContext db,
+    CancellationToken ct
+    ) =>
+    {
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize switch
+        {
+            < 1 => 20,
+            > 100 => 100,
+            _ => query.PageSize
+        };
+
+        var albumsQuery = db.Albums
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Artist))
+        {
+            var artist = query.Artist.Trim().ToLower();
+
+            albumsQuery = albumsQuery.Where(album =>
+                album.AlbumArtists.Any(aa =>
+                    aa.Artist.Name.ToLower().Contains(artist)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Genre))
+        {
+            var genre = query.Genre.Trim().ToLower();
+
+            albumsQuery = albumsQuery.Where(album =>
+                album.AlbumGenres.Any(ag =>
+                    ag.Genre.Name.ToLower().Contains(genre)));
+        }
+
+        if (query.ReleaseYear is not null)
+        {
+            albumsQuery = albumsQuery.Where(album =>
+                album.ReleaseYear == query.ReleaseYear);
+        }
+
+        if (query.Decade is not null)
+        {
+            var decadeStart = query.Decade.Value;
+            var decadeEnd = decadeStart + 9;
+
+            albumsQuery = albumsQuery.Where(album =>
+                album.ReleaseYear >= decadeStart &&
+                album.ReleaseYear <= decadeEnd);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim().ToLower();
+
+            albumsQuery = albumsQuery.Where(album =>
+                album.Title.ToLower().Contains(search) ||
+                album.AlbumArtists.Any(aa =>
+                    aa.Artist.Name.ToLower().Contains(search)) ||
+                album.AlbumGenres.Any(ag =>
+                    ag.Genre.Name.ToLower().Contains(search)));
+        }
+
+        albumsQuery = query.Sort?.ToLower() switch
+        {
+            "title" => albumsQuery.OrderBy(album => album.Title),
+            "title_desc" => albumsQuery.OrderByDescending(album => album.Title),
+
+            "releaseyear" => albumsQuery.OrderBy(album => album.ReleaseYear),
+            "releaseyear_desc" => albumsQuery.OrderByDescending(album => album.ReleaseYear),
+
+            "score" => albumsQuery.OrderBy(album => album.CuratedScore),
+            "score_desc" => albumsQuery.OrderByDescending(album => album.CuratedScore),
+
+            _ => albumsQuery.OrderBy(album => album.Title)
+        };
+
+        var totalCount = await albumsQuery.CountAsync(ct);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var albums = await albumsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(album => new AlbumBrowseResponse(
+                album.Id,
+                album.Title,
+                album.ReleaseYear,
+                album.CuratedScore,
+                album.AlbumArtists
+                    .OrderBy(aa => aa.Role)
+                    .ThenBy(aa => aa.Artist.Name)
+                    .Select(aa => aa.Artist.Name)
+                    .ToList(),
+                album.AlbumGenres
+                    .OrderByDescending(ag => ag.IsPrimary)
+                    .ThenBy(ag => ag.Genre.Name)
+                    .Select(ag => ag.Genre.Name)
+                    .ToList()
+            ))
+            .ToListAsync(ct);
+
+        return Results.Ok(new PagedResponse<AlbumBrowseResponse>(
+            albums,
+            page,
+            pageSize,
+            totalCount,
+            totalPages
+        ));
+    })
+    .WithName("BrowseAlbums")
+    .WithSummary("Browse albums")
+    .WithDescription("Returns a paginated list of albums with optional filtering, searching, and sorting.")
+    .Produces<PagedResponse<AlbumBrowseResponse>>(StatusCodes.Status200OK);
+
         return app;
     }
 }
