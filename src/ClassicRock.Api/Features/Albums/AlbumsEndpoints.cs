@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using ClassicRock.Api.Auth;
 using ClassicRock.Api.Data;
 using ClassicRock.Api.Entities;
+using ClassicRock.Api.Features.Audit;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClassicRock.Api.Features.Albums;
@@ -108,6 +110,8 @@ public static class AlbumsEndpoints
         group.MapPost("/", async (
             CreateAlbumRequest request,
             AppDbContext db,
+            AuditLogger auditLogger,
+            ClaimsPrincipal user,
             CancellationToken ct
         ) =>
         {
@@ -127,6 +131,21 @@ public static class AlbumsEndpoints
             };
 
             db.Albums.Add(album);
+
+            // Audit Album Creation
+            auditLogger.Add(
+                user,
+                action: "Created",
+                entityType: "Album",
+                entityId: album.Id.ToString(),
+                details: new
+                {
+                    album.Id,
+                    album.Title,
+                    album.ReleaseYear,
+                    album.CuratedScore
+                });
+
             await db.SaveChangesAsync(ct);
 
             return Results.CreatedAtRoute(

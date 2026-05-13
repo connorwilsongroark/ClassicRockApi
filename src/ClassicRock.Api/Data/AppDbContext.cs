@@ -15,6 +15,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
     public DbSet<AlbumGenre> AlbumGenres => Set<AlbumGenre>();
     public DbSet<AlbumArtist> AlbumArtists => Set<AlbumArtist>();
     public DbSet<AlbumTrack> AlbumTracks => Set<AlbumTrack>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -144,7 +145,35 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options): DbCont
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(x => x.Id);
 
+            entity.Property(x => x.Action)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.EntityType)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.EntityId)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.UserId)
+                .HasMaxLength(300);
+
+            entity.Property(x => x.UserEmail)
+                .HasMaxLength(300);
+
+            entity.Property(x => x.CreatedAtUtc)
+                .IsRequired();
+
+            entity.Property(x => x.DetailsJson);
+        });
+
+        
         // base.OnModelCreating(modelBuilder);
     }
 }
