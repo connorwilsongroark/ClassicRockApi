@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAlbumMutations } from "@/hooks/useAlbumMutations";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export function CreateAlbumDialog() {
   const { createAlbumMutation } = useAlbumMutations();
@@ -21,6 +22,9 @@ export function CreateAlbumDialog() {
   const [releaseYear, setReleaseYear] = useState("");
   const [curatedScore, setCuratedScore] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  const { hasPermission } = useAuthPermissions();
+  const canCreateAlbums = hasPermission("create:albums");
 
   function resetForm() {
     setTitle("");
@@ -75,7 +79,7 @@ export function CreateAlbumDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button>New Album</Button>
+        <Button disabled={!canCreateAlbums}>New Album</Button>
       </DialogTrigger>
 
       <DialogContent>
