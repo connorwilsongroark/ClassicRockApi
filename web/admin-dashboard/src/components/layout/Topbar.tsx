@@ -5,6 +5,8 @@ export default function Topbar() {
   const { loginWithRedirect, logout, isAuthenticated, isLoading, user } =
     useAuth0();
 
+  const appUrl = window.location.origin + import.meta.env.BASE_URL;
+
   return (
     <header className='flex h-14 shrink-0 items-center justify-between border-b bg-background px-6'>
       <span className='font-medium'>Classic Rock Admin</span>
@@ -26,7 +28,7 @@ export default function Topbar() {
               onClick={() =>
                 logout({
                   logoutParams: {
-                    returnTo: window.location.origin,
+                    returnTo: appUrl,
                   },
                 })
               }
