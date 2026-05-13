@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 
 import DashboardPage from "./pages/DashboardPage";
@@ -10,7 +10,7 @@ import GenresPage from "./pages/GenresPage";
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route element={<AppLayout />}>
           <Route path='/' element={<DashboardPage />} />
@@ -21,7 +21,7 @@ function App() {
           <Route path='/genres' element={<GenresPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
