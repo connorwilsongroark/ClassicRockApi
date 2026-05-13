@@ -94,3 +94,165 @@ The project was built as a long-term portfolio and learning platform focused on:
 - Swagger / OpenAPI
 - GitHub
 - VS Code
+
+---
+
+# Browsing Albums
+
+The Classic Rock API provides a flexible album browsing endpoint that supports:
+
+- filtering
+- searching
+- sorting
+- pagination
+
+This endpoint is intended for public-facing music exploration and frontend consumption.
+
+---
+
+# Endpoint
+
+```http
+GET /api/v1/albums/browse
+```
+
+---
+
+# Query Parameters
+
+| Parameter     | Type   | Description                                  |
+| ------------- | ------ | -------------------------------------------- |
+| `artist`      | string | Filter albums by artist name                 |
+| `genre`       | string | Filter albums by genre name                  |
+| `releaseYear` | int    | Filter by exact release year                 |
+| `decade`      | int    | Filter by decade (example: `1970`)           |
+| `search`      | string | Search album titles, artists, and genres     |
+| `sort`        | string | Sort results                                 |
+| `page`        | int    | Page number (default: `1`)                   |
+| `pageSize`    | int    | Results per page (default: `20`, max: `100`) |
+
+---
+
+# Supported Sort Values
+
+| Sort Value         | Description              |
+| ------------------ | ------------------------ |
+| `title`            | Title ascending          |
+| `title_desc`       | Title descending         |
+| `releaseyear`      | Release year ascending   |
+| `releaseyear_desc` | Release year descending  |
+| `score`            | Curated score ascending  |
+| `score_desc`       | Curated score descending |
+
+---
+
+# Example Requests
+
+## Browse All Albums
+
+```http
+GET /api/v1/albums/browse
+```
+
+---
+
+## Filter by Artist
+
+```http
+GET /api/v1/albums/browse?artist=Pink Floyd
+```
+
+---
+
+## Filter by Genre
+
+```http
+GET /api/v1/albums/browse?genre=Progressive Rock
+```
+
+---
+
+## Filter by Decade
+
+```http
+GET /api/v1/albums/browse?decade=1970
+```
+
+---
+
+## Search Albums
+
+```http
+GET /api/v1/albums/browse?search=dark
+```
+
+---
+
+## Sort by Release Year Descending
+
+```http
+GET /api/v1/albums/browse?sort=releaseyear_desc
+```
+
+---
+
+## Pagination Example
+
+```http
+GET /api/v1/albums/browse?page=2&pageSize=10
+```
+
+---
+
+## Combined Query Example
+
+```http
+GET /api/v1/albums/browse?genre=Progressive&decade=1970&sort=score_desc&page=1&pageSize=10
+```
+
+---
+
+# Example Response
+
+```json
+{
+  "items": [
+    {
+      "id": "d4c8c0e4-4f52-4ec0-b8fd-4d6f70d5d84f",
+      "title": "Wish You Were Here",
+      "releaseYear": 1975,
+      "curatedScore": 9.8,
+      "artists": ["Pink Floyd"],
+      "genres": ["Progressive Rock", "Psychedelic Rock"]
+    }
+  ],
+  "page": 1,
+  "pageSize": 10,
+  "totalCount": 1,
+  "totalPages": 1
+}
+```
+
+---
+
+# Notes
+
+- Filtering is case-insensitive.
+- Search queries match:
+  - album titles
+  - artist names
+  - genre names
+- Pagination metadata is included with every response.
+- Results are returned in a lightweight format intended for browsing and listing pages.
+
+---
+
+# Design Goals
+
+The browsing endpoint was designed to:
+
+- provide frontend-friendly querying
+- support scalable filtering and pagination
+- avoid over-fetching unnecessary data
+- separate browsing concerns from detailed album retrieval
+- serve as a foundation for future public music exploration features
