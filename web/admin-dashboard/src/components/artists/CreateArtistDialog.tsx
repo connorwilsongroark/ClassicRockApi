@@ -18,8 +18,6 @@ export function CreateArtistDialog() {
   const { hasPermission } = useAuthPermissions();
   const canCreateArtist = hasPermission("create:artists");
 
-  if (!canCreateArtist) return null;
-
   const { createArtistMutation } = useArtistMutations();
 
   const [open, setOpen] = useState(false);
@@ -27,6 +25,8 @@ export function CreateArtistDialog() {
   const [country, setCountry] = useState("");
   const [formedYear, setFormedYear] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  if (!canCreateArtist) return null;
 
   function resetForm() {
     setName("");

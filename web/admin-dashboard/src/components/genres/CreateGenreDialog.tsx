@@ -17,13 +17,14 @@ import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 export function CreateGenreDialog() {
   const { hasPermission } = useAuthPermissions();
   const canCreateGenre = hasPermission("create:genres");
-  if (!canCreateGenre) return null;
 
   const { createGenreMutation } = useGenreMutations();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  if (!canCreateGenre) return null;
 
   function resetForm() {
     setName("");

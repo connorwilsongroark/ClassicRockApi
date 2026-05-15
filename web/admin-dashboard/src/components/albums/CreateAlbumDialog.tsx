@@ -17,7 +17,6 @@ import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 export function CreateAlbumDialog() {
   const { hasPermission } = useAuthPermissions();
   const canCreateAlbums = hasPermission("create:albums");
-  if (!canCreateAlbums) return null;
 
   const { createAlbumMutation } = useAlbumMutations();
 
@@ -26,6 +25,8 @@ export function CreateAlbumDialog() {
   const [releaseYear, setReleaseYear] = useState("");
   const [curatedScore, setCuratedScore] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  if (!canCreateAlbums) return null;
 
   function resetForm() {
     setTitle("");

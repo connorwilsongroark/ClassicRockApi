@@ -1,7 +1,13 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { createAlbum, deleteAlbum, updateAlbum } from "@/api/albumsApi";
+import {
+  createAlbum,
+  deleteAlbum,
+  updateAlbum,
+  quickAddAlbum,
+  type QuickAddAlbumRequest,
+} from "@/api/albumsApi";
 
 export function useAlbumMutations() {
   const queryClient = useQueryClient();
@@ -21,6 +27,15 @@ export function useAlbumMutations() {
       const token = await getAccessTokenSilently();
 
       return createAlbum(body, token);
+    },
+    onSuccess: invalidateAlbums,
+  });
+
+  const quickAddAlbumMutation = useMutation({
+    mutationFn: async (body: QuickAddAlbumRequest) => {
+      const token = await getAccessTokenSilently();
+
+      return quickAddAlbum(body, token);
     },
     onSuccess: invalidateAlbums,
   });
@@ -57,5 +72,6 @@ export function useAlbumMutations() {
     createAlbumMutation,
     updateAlbumMutation,
     deleteAlbumMutation,
+    quickAddAlbumMutation,
   };
 }

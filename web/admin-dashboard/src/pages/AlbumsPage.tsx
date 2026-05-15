@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CreateAlbumDialog } from "@/components/albums/CreateAlbumDialog";
 import { DeleteAlbumDialog } from "@/components/albums/DeleteAlbumDialog";
 import { useAuthPermissions } from "@/hooks/useAuthPermissions";
+import { QuickAddAlbumDialog } from "@/components/albums/QuickAddAlbumDialog";
 
 export default function AlbumsPage() {
   // SEARCH
@@ -41,7 +42,12 @@ export default function AlbumsPage() {
       <PageHeader
         title='Albums'
         description='Create, edit, and manage album records.'
-        actions={<CreateAlbumDialog />}
+        actions={
+          <div className='flex gap-2'>
+            <CreateAlbumDialog />
+            <QuickAddAlbumDialog />
+          </div>
+        }
       />
 
       <div className='mb-4 max-w-sm'>

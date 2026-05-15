@@ -110,3 +110,25 @@ public sealed record AlbumBrowseQuery(
     int Page = 1,
     int PageSize = 20
 );
+
+// =====================
+// Album - Quick Add
+// =====================
+public sealed record QuickAddAlbumRequest(
+    string Title,
+    int ReleaseYear,
+    decimal? CuratedScore,
+    List<QuickAddTrackRequest> Tracks
+);
+
+public sealed record QuickAddTrackRequest(
+    string Name,
+    TimeSpan? Duration
+);
+public sealed record QuickAddAlbumResponse(
+    Guid Id,
+    string Title,
+    int ReleaseYear,
+    decimal? CuratedScore,
+    IReadOnlyList<AlbumTrackResponse> Tracks
+);

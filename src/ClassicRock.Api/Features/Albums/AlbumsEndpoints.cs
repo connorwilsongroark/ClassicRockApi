@@ -848,6 +848,135 @@ group.MapGet("/browse", async (
     .WithDescription("Returns a paginated list of albums with optional filtering, searching, and sorting.")
     .Produces<PagedResponse<AlbumBrowseResponse>>(StatusCodes.Status200OK);
 
+    group.MapPost("/quick-add", async (
+        QuickAddAlbumRequest request,
+        AppDbContext db,
+        AuditLogger auditLogger,
+        ClaimsPrincipal user,
+        CancellationToken ct
+    ) =>
+    {
+        var albumValidation = AlbumValidator.ValidateForCreate(
+            new CreateAlbumRequest(
+                request.Title,
+                request.ReleaseYear,
+                request.CuratedScore
+            )
+        );
+
+        if (!albumValidation.IsValid) return Results.ValidationProblem(albumValidation.Errors);
+
+        if (request.Tracks is null || request.Tracks.Count == 0)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["tracks"] = ["At least one track is required."]
+            });
+        }
+
+        // Check each track in the request for any errors / invalid arguments
+        var trackErrors = new Dictionary<string, string[]>();
+        for (var i = 0; i < request.Tracks.Count; i++)
+        {
+            var track = request.Tracks[i];
+            if (string.IsNullOrWhiteSpace(track.Name))
+            {
+                trackErrors[$"tracks[{i}].name"] = ["Track name is required."];
+            }
+            if (track.Duration < TimeSpan.Zero)
+            {
+                trackErrors[$"tracks[{i}].duration"] = ["Track duration cannot be negative."];
+            }
+        }
+
+        if (trackErrors.Count > 0)
+        {
+            return Results.ValidationProblem(trackErrors);
+        }
+
+        // Start new DB transaction to ensure mutation is atomic
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
+        // Add the album to the table
+        var album = new Album
+        {
+            Id = Guid.NewGuid(),
+            Title = AlbumValidator.NormalizeTitle(request.Title),
+            ReleaseYear = request.ReleaseYear,
+            CuratedScore = request.CuratedScore  
+        };
+        db.Albums.Add(album);
+
+        // Add the tracks to the table
+        var albumTrackResponses = new List<AlbumTrackResponse>();
+        for (var i = 0; i < request.Tracks.Count; i++)
+        {
+            var requestTrack = request.Tracks[i];
+            var trackNumber = i + 1;
+
+            var track = new Track
+            {
+                Id = Guid.NewGuid(),
+                Name = requestTrack.Name.Trim(),
+                Duration = requestTrack.Duration
+            };
+
+            db.Tracks.Add(track);
+            // Add the album -> track associations
+            db.AlbumTracks.Add(new AlbumTrack
+            {
+                AlbumId = album.Id,
+                TrackId = track.Id,
+                TrackNumber = trackNumber
+            });
+
+            albumTrackResponses.Add(new AlbumTrackResponse(
+                track.Id, track.Name, track.Duration, trackNumber
+            ));
+        }
+
+        auditLogger.Add(
+            user,
+            action: "QuickAdded",
+            entityType: "Album",
+            entityId: album.Id.ToString(),
+            details: new
+            {
+                album.Id,
+                album.Title,
+                album.ReleaseYear,
+                album.CuratedScore,
+                TrackCount = request.Tracks.Count
+            }
+        );
+
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+
+        return Results.CreatedAtRoute(
+            "GetAlbumById",
+            new { id = album.Id },
+            new QuickAddAlbumResponse(
+                album.Id,
+                album.Title,
+                album.ReleaseYear,
+                album.CuratedScore,
+                albumTrackResponses
+            )
+        );
+    })
+    .RequireAuthorization(
+        Permissions.CreateAlbums,
+        Permissions.CreateTracks,
+        Permissions.ManageAlbumTracks
+    )
+    .WithSummary("Quick-add an album with tracks")
+    .WithDescription("Creates an album, creates new tracks, and associates those tracks with the album in one step. Track numbers are assigned based on the order of the tracks in the request.")
+    .Produces<QuickAddAlbumResponse>(StatusCodes.Status201Created)
+    .ProducesValidationProblem()
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status403Forbidden);
+
         return app;
     }
 }

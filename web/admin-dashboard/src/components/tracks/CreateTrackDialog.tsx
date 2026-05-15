@@ -19,14 +19,14 @@ export function CreateTrackDialog() {
   const { hasPermission } = useAuthPermissions();
   const canCreateTracks = hasPermission("create:tracks");
 
-  if (!canCreateTracks) return null;
-
   const { createTrackMutation } = useTrackMutations();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  if (!canCreateTracks) return null;
 
   function resetForm() {
     setName("");

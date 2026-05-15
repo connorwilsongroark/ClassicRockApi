@@ -56,6 +56,18 @@ export type UpdateAlbumRequest = {
   curatedScore?: number | null;
 };
 
+export type QuickAddAlbumTrackRequest = {
+  name: string;
+  duration: string;
+};
+
+export type QuickAddAlbumRequest = {
+  title: string;
+  releaseYear: number;
+  curatedScore: number | null;
+  tracks: QuickAddAlbumTrackRequest[];
+};
+
 // =========
 // API Calls
 // =========
@@ -74,6 +86,18 @@ export function createAlbum(body: CreateAlbumRequest, token: string) {
       Authorization: `Bearer ${token}`,
     },
   });
+}
+
+export function quickAddAlbum(body: QuickAddAlbumRequest, token: string) {
+  return apiPost<AlbumDetail, QuickAddAlbumRequest>(
+    "/api/v1/albums/quick-add",
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
 }
 
 export function updateAlbum(
