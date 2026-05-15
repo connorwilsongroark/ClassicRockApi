@@ -12,8 +12,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useArtistMutations } from "@/hooks/useArtistMutations";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export function CreateArtistDialog() {
+  const { hasPermission } = useAuthPermissions();
+  const canCreateArtist = hasPermission("create:artists");
+
+  if (!canCreateArtist) return null;
+
   const { createArtistMutation } = useArtistMutations();
 
   const [open, setOpen] = useState(false);

@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 type AlbumGenresSectionProps = {
   albumId: string;
@@ -24,6 +25,9 @@ export function AlbumGenresSection({
   albumId,
   genres,
 }: AlbumGenresSectionProps) {
+  const { hasPermission } = useAuthPermissions();
+  const canManageAlbumGenres = hasPermission("manage:album-genres");
+
   const { updateGenreMutation, removeGenreMutation } =
     useAlbumGenreMutations(albumId);
 
@@ -42,7 +46,9 @@ export function AlbumGenresSection({
     <section className='rounded-md border bg-background p-6'>
       <div className='mb-4 flex items-center justify-between'>
         <h2 className='text-lg font-semibold'>Genres</h2>
-        <AddAlbumGenreDialog albumId={albumId} currentGenres={genres} />
+        {canManageAlbumGenres && (
+          <AddAlbumGenreDialog albumId={albumId} currentGenres={genres} />
+        )}
       </div>
 
       {genres.length === 0 ? (
@@ -67,54 +73,55 @@ export function AlbumGenresSection({
                   )}
                 </div>
               </div>
-
-              <div className='flex gap-2'>
-                {!genre.isPrimary && (
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => handleSetPrimary(genre.genreId)}
-                    disabled={updateGenreMutation.isPending}
-                  >
-                    Set Primary
-                  </Button>
-                )}
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+              {canManageAlbumGenres && (
+                <div className='flex gap-2'>
+                  {!genre.isPrimary && (
                     <Button
-                      variant='destructive'
+                      variant='outline'
                       size='sm'
-                      disabled={removeGenreMutation.isPending}
+                      onClick={() => handleSetPrimary(genre.genreId)}
+                      disabled={updateGenreMutation.isPending}
                     >
-                      Remove
+                      Set Primary
                     </Button>
-                  </AlertDialogTrigger>
+                  )}
 
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove Genre</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to remove{" "}
-                        <span className='font-medium text-foreground'>
-                          {genre.genreName}
-                        </span>{" "}
-                        from this album?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                      <AlertDialogAction
-                        onClick={() => handleRemoveGenre(genre.genreId)}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant='destructive'
+                        size='sm'
+                        disabled={removeGenreMutation.isPending}
                       >
                         Remove
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                      </Button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Genre</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to remove{" "}
+                          <span className='font-medium text-foreground'>
+                            {genre.genreName}
+                          </span>{" "}
+                          from this album?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                        <AlertDialogAction
+                          onClick={() => handleRemoveGenre(genre.genreId)}
+                        >
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </div>
           ))}
         </div>

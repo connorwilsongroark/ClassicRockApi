@@ -7,8 +7,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CreateGenreDialog } from "@/components/genres/CreateGenreDialog";
 import { EditGenreDialog } from "@/components/genres/EditGenreDialog";
 import { DeleteGenreDialog } from "@/components/genres/DeleteGenreDialog";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export default function GenresPage() {
+  const { hasPermission } = useAuthPermissions();
+  const canUpdateGenres = hasPermission("update:genres");
+  const canDeleteGenres = hasPermission("delete:genres");
+
   const [searchText, setSearchText] = useState("");
   const [editingGenre, setEditingGenre] = useState<GenreListItem | null>(null);
   const [genreToDelete, setGenreToDelete] = useState<GenreListItem | null>(
@@ -67,21 +72,24 @@ export default function GenresPage() {
                     <div className='font-medium'>{genre.name}</div>
 
                     <div className='flex gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setEditingGenre(genre)}
-                      >
-                        Edit
-                      </Button>
-
-                      <Button
-                        variant='destructive'
-                        size='sm'
-                        onClick={() => setGenreToDelete(genre)}
-                      >
-                        Delete
-                      </Button>
+                      {canUpdateGenres && (
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setEditingGenre(genre)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {canDeleteGenres && (
+                        <Button
+                          variant='destructive'
+                          size='sm'
+                          onClick={() => setGenreToDelete(genre)}
+                        >
+                          Delete
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

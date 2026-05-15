@@ -7,15 +7,21 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CreateAlbumDialog } from "@/components/albums/CreateAlbumDialog";
 import { DeleteAlbumDialog } from "@/components/albums/DeleteAlbumDialog";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export default function AlbumsPage() {
   // SEARCH
   const [searchText, setSearchText] = useState("");
 
   // DELETE ALBUM
+  const { hasPermission } = useAuthPermissions();
+
+  const canDeleteAlbums = hasPermission("delete:albums");
   const [albumToDelete, setAlbumToDelete] = useState<AlbumListItem | null>(
     null,
   );
+
+  const canUpdateAlbums = hasPermission("update:albums");
 
   const {
     data: albums = [],
@@ -75,16 +81,19 @@ export default function AlbumsPage() {
 
                     <div className='flex gap-2'>
                       <Button asChild variant='outline' size='sm'>
-                        <Link to={`/albums/${album.id}`}>View & Edit</Link>
+                        <Link to={`/albums/${album.id}`}>
+                          {canUpdateAlbums ? "View & Edit" : "View"}
+                        </Link>
                       </Button>
-
-                      <Button
-                        variant='destructive'
-                        size='sm'
-                        onClick={() => setAlbumToDelete(album)}
-                      >
-                        Delete
-                      </Button>
+                      {canDeleteAlbums && (
+                        <Button
+                          variant='destructive'
+                          size='sm'
+                          onClick={() => setAlbumToDelete(album)}
+                        >
+                          Delete
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

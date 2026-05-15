@@ -13,8 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import { useTrackMutations } from "@/hooks/useTrackMutations";
 import { DurationInput } from "../common/DurationInput";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export function CreateTrackDialog() {
+  const { hasPermission } = useAuthPermissions();
+  const canCreateTracks = hasPermission("create:tracks");
+
+  if (!canCreateTracks) return null;
+
   const { createTrackMutation } = useTrackMutations();
 
   const [open, setOpen] = useState(false);

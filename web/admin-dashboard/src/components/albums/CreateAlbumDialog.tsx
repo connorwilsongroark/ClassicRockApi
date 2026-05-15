@@ -15,6 +15,10 @@ import { useAlbumMutations } from "@/hooks/useAlbumMutations";
 import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export function CreateAlbumDialog() {
+  const { hasPermission } = useAuthPermissions();
+  const canCreateAlbums = hasPermission("create:albums");
+  if (!canCreateAlbums) return null;
+
   const { createAlbumMutation } = useAlbumMutations();
 
   const [open, setOpen] = useState(false);
@@ -22,9 +26,6 @@ export function CreateAlbumDialog() {
   const [releaseYear, setReleaseYear] = useState("");
   const [curatedScore, setCuratedScore] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
-
-  const { hasPermission } = useAuthPermissions();
-  const canCreateAlbums = hasPermission("create:albums");
 
   function resetForm() {
     setTitle("");
@@ -79,7 +80,7 @@ export function CreateAlbumDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button disabled={!canCreateAlbums}>New Album</Button>
+        <Button>New Album</Button>
       </DialogTrigger>
 
       <DialogContent>

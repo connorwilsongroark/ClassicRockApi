@@ -7,8 +7,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CreateArtistDialog } from "@/components/artists/CreateArtistDialog";
 import { EditArtistDialog } from "@/components/artists/EditArtistDialog";
 import { DeleteArtistDialog } from "@/components/artists/DeleteArtistDialog";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export default function ArtistsPage() {
+  const { hasPermission } = useAuthPermissions();
+  const canUpdateArtists = hasPermission("update:artists");
+  const canDeleteArtists = hasPermission("delete:artists");
+
   const [searchText, setSearchText] = useState("");
   const [editingArtist, setEditingArtist] = useState<ArtistListItem | null>(
     null,
@@ -76,21 +81,24 @@ export default function ArtistsPage() {
                     </div>
 
                     <div className='flex gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setEditingArtist(artist)}
-                      >
-                        Edit
-                      </Button>
-
-                      <Button
-                        variant='destructive'
-                        size='sm'
-                        onClick={() => setArtistToDelete(artist)}
-                      >
-                        Delete
-                      </Button>
+                      {canUpdateArtists && (
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setEditingArtist(artist)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {canDeleteArtists && (
+                        <Button
+                          variant='destructive'
+                          size='sm'
+                          onClick={() => setArtistToDelete(artist)}
+                        >
+                          Delete
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

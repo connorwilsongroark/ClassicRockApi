@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { AlbumDetail } from "@/api/albumsApi";
 import { Button } from "@/components/ui/button";
 import { EditAlbumDialog } from "@/components/albums/EditAlbumDialog";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 type AlbumBasicInfoCardProps = {
   album: AlbumDetail;
@@ -10,14 +11,19 @@ type AlbumBasicInfoCardProps = {
 export function AlbumBasicInfoCard({ album }: AlbumBasicInfoCardProps) {
   const [open, setOpen] = useState(false);
 
+  const { hasPermission } = useAuthPermissions();
+  const canUpdateAlbums = hasPermission("update:albums");
+
   return (
     <section className='rounded-md border bg-background p-6'>
       <div className='mb-4 flex items-center justify-between gap-4'>
         <h2 className='text-lg font-semibold'>Basic Info</h2>
 
-        <Button variant='outline' size='sm' onClick={() => setOpen(true)}>
-          Edit
-        </Button>
+        {canUpdateAlbums && (
+          <Button variant='outline' size='sm' onClick={() => setOpen(true)}>
+            Edit
+          </Button>
+        )}
       </div>
 
       <dl className='grid gap-4 sm:grid-cols-3'>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/popover";
 import { AddAlbumTrackDialog } from "./AddAlbumTrackDialog";
 import { useAlbumTrackMutations } from "@/hooks/useAlbumTrackMutations";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 type AlbumTracksSectionProps = {
   albumId: string;
@@ -31,6 +32,9 @@ export function AlbumTracksSection({
   albumId,
   tracks,
 }: AlbumTracksSectionProps) {
+  const { hasPermission } = useAuthPermissions();
+  const canManageAlbumTracks = hasPermission("manage:album-tracks");
+
   const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
   const [trackNumberInput, setTrackNumberInput] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -86,7 +90,9 @@ export function AlbumTracksSection({
     <section className='rounded-md border bg-background p-6'>
       <div className='mb-4 flex items-center justify-between'>
         <h2 className='text-lg font-semibold'>Tracks</h2>
-        <AddAlbumTrackDialog albumId={albumId} currentTracks={tracks} />
+        {canManageAlbumTracks && (
+          <AddAlbumTrackDialog albumId={albumId} currentTracks={tracks} />
+        )}
       </div>
 
       {tracks.length === 0 ? (
@@ -110,114 +116,121 @@ export function AlbumTracksSection({
                   </Badge>
                 </div>
               </div>
+              {canManageAlbumTracks && (
+                <div className='flex gap-2'>
+                  <Popover
+                    open={editingTrackId === track.trackId}
+                    onOpenChange={(open) => {
+                      if (open) {
+                        openEditNumber(track);
+                      } else {
+                        setEditingTrackId(null);
+                        setFormError(null);
+                      }
+                    }}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        disabled={updateTrackMutation.isPending}
+                      >
+                        Edit Number
+                      </Button>
+                    </PopoverTrigger>
 
-              <div className='flex gap-2'>
-                <Popover
-                  open={editingTrackId === track.trackId}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      openEditNumber(track);
-                    } else {
-                      setEditingTrackId(null);
-                      setFormError(null);
-                    }
-                  }}
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      disabled={updateTrackMutation.isPending}
-                    >
-                      Edit Number
-                    </Button>
-                  </PopoverTrigger>
+                    <PopoverContent className='w-56' align='end'>
+                      <div className='space-y-3'>
+                        <div>
+                          <p className='text-sm font-medium'>Track Number</p>
+                          <p className='text-xs text-muted-foreground'>
+                            Update this track&apos;s position on the album.
+                          </p>
+                        </div>
 
-                  <PopoverContent className='w-56' align='end'>
-                    <div className='space-y-3'>
-                      <div>
-                        <p className='text-sm font-medium'>Track Number</p>
-                        <p className='text-xs text-muted-foreground'>
-                          Update this track&apos;s position on the album.
-                        </p>
-                      </div>
-
-                      <Input
-                        type='number'
-                        min={1}
-                        value={trackNumberInput}
-                        onChange={(e) => {
-                          setTrackNumberInput(e.target.value);
-                          setFormError(null);
-                        }}
-                      />
-
-                      {formError && (
-                        <p className='text-sm text-destructive'>{formError}</p>
-                      )}
-
-                      <div className='flex justify-end gap-2'>
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() => {
-                            setEditingTrackId(null);
+                        <Input
+                          type='number'
+                          min={1}
+                          value={trackNumberInput}
+                          onChange={(e) => {
+                            setTrackNumberInput(e.target.value);
                             setFormError(null);
                           }}
-                        >
-                          Cancel
-                        </Button>
+                        />
 
-                        <Button
-                          size='sm'
-                          onClick={() => handleUpdateTrackNumber(track.trackId)}
-                          disabled={
-                            updateTrackMutation.isPending || !trackNumberInput
-                          }
-                        >
-                          {updateTrackMutation.isPending ? "Saving..." : "Save"}
-                        </Button>
+                        {formError && (
+                          <p className='text-sm text-destructive'>
+                            {formError}
+                          </p>
+                        )}
+
+                        <div className='flex justify-end gap-2'>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => {
+                              setEditingTrackId(null);
+                              setFormError(null);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+
+                          <Button
+                            size='sm'
+                            onClick={() =>
+                              handleUpdateTrackNumber(track.trackId)
+                            }
+                            disabled={
+                              updateTrackMutation.isPending || !trackNumberInput
+                            }
+                          >
+                            {updateTrackMutation.isPending
+                              ? "Saving..."
+                              : "Save"}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                    </PopoverContent>
+                  </Popover>
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant='destructive'
-                      size='sm'
-                      disabled={removeTrackMutation.isPending}
-                    >
-                      Remove
-                    </Button>
-                  </AlertDialogTrigger>
-
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove Track</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to remove{" "}
-                        <span className='font-medium text-foreground'>
-                          {track.trackName}
-                        </span>{" "}
-                        from this album?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                      <AlertDialogAction
-                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                        onClick={() => handleRemoveTrack(track.trackId)}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant='destructive'
+                        size='sm'
+                        disabled={removeTrackMutation.isPending}
                       >
                         Remove
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                      </Button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Track</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to remove{" "}
+                          <span className='font-medium text-foreground'>
+                            {track.trackName}
+                          </span>{" "}
+                          from this album?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                        <AlertDialogAction
+                          className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                          onClick={() => handleRemoveTrack(track.trackId)}
+                        >
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </div>
           ))}
         </div>

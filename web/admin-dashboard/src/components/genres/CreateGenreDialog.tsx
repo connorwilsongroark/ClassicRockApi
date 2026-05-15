@@ -12,8 +12,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGenreMutations } from "@/hooks/useGenreMutations";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export function CreateGenreDialog() {
+  const { hasPermission } = useAuthPermissions();
+  const canCreateGenre = hasPermission("create:genres");
+  if (!canCreateGenre) return null;
+
   const { createGenreMutation } = useGenreMutations();
 
   const [open, setOpen] = useState(false);

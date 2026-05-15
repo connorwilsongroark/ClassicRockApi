@@ -7,8 +7,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CreateTrackDialog } from "@/components/tracks/CreateTrackDialog";
 import { EditTrackDialog } from "@/components/tracks/EditTrackDialog";
 import { DeleteTrackDialog } from "@/components/tracks/DeleteTrackDialog";
+import { useAuthPermissions } from "@/hooks/useAuthPermissions";
 
 export default function TracksPage() {
+  const { hasPermission } = useAuthPermissions();
+  const canUpdateTracks = hasPermission("update:tracks");
+  const canDeleteTracks = hasPermission("delete:tracks");
+
   const [searchText, setSearchText] = useState("");
   const [editingTrack, setEditingTrack] = useState<TrackListItem | null>(null);
   const [trackToDelete, setTrackToDelete] = useState<TrackListItem | null>(
@@ -72,21 +77,24 @@ export default function TracksPage() {
                     </div>
 
                     <div className='flex gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setEditingTrack(track)}
-                      >
-                        Edit
-                      </Button>
-
-                      <Button
-                        variant='destructive'
-                        size='sm'
-                        onClick={() => setTrackToDelete(track)}
-                      >
-                        Delete
-                      </Button>
+                      {canUpdateTracks && (
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setEditingTrack(track)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {canDeleteTracks && (
+                        <Button
+                          variant='destructive'
+                          size='sm'
+                          onClick={() => setTrackToDelete(track)}
+                        >
+                          Delete
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
