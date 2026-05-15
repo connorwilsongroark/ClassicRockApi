@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useTrackMutations } from "@/hooks/useTrackMutations";
+import { DurationInput } from "../common/DurationInput";
 
 export function CreateTrackDialog() {
   const { createTrackMutation } = useTrackMutations();
@@ -85,14 +86,14 @@ export function CreateTrackDialog() {
 
           <div className='space-y-2'>
             <Label htmlFor='create-track-duration'>Duration</Label>
-            <Input
+            <DurationInput
               id='create-track-duration'
               value={duration}
-              onChange={(e) => {
-                setDuration(e.target.value);
+              placeholder='00:00:00'
+              onChange={(value) => {
+                setDuration(value);
                 setFormError(null);
               }}
-              placeholder='00:13:31'
             />
           </div>
         </div>

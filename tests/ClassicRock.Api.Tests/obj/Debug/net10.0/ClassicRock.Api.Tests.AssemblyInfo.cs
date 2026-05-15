@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClassicRock.Api.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b5010c352e7dfe24e482dfabb892b91e1a557e4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c215b0fd2d6ce2304db692b6a562e969a1c37209")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClassicRock.Api.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClassicRock.Api.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
